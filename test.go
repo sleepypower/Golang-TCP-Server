@@ -2,7 +2,9 @@ package main
 
 import (
 	"fmt"
-	"unsafe"
+	"io"
+	"os"
+	"strings"
 )
 
 type Creature struct {
@@ -18,7 +20,7 @@ func foo() *Creature {
 }
 
 func main() {
-	b := []byte("ABC♥")
+	/* b := []byte("ABC♥")
 	fmt.Println(b) // [65 66 67 226 130 172]
 	fmt.Println(len(b))
 	fmt.Printf("a: %T, %d\n", b, unsafe.Sizeof(b))
@@ -29,5 +31,17 @@ func main() {
 	fileNameInBytesSize := len(fileNameInBytes)
 	println(fileNameInBytesSize)
 	fmt.Printf("%v", fileNameInBytes)
-	fmt.Println(int([]byte{65, 66}))
+	fmt.Println(int([]byte{65, 66})) */
+	/* buffer := make([]byte, 4)
+	binary.LittleEndian.PutUint32(buffer, uint32(184549376))
+	fmt.Printf("buffer %v", buffer)
+	fmt.Printf("value %d", int32(binary.LittleEndian.Uint32([]byte{11, 0, 0, 0}))) */
+	src := strings.NewReader("GeeksforGeeks\n")
+
+	// Defining destination using Stdout
+	dst := os.Stdout
+
+	// Calling CopyN method with its parameters
+	_, _ = io.CopyN(dst, src, 5)
+	println("kjadkjdsa" + "jds")
 }
