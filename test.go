@@ -1,10 +1,8 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
-	"io"
-	"os"
-	"strings"
 )
 
 type Creature struct {
@@ -36,7 +34,7 @@ func main() {
 	binary.LittleEndian.PutUint32(buffer, uint32(184549376))
 	fmt.Printf("buffer %v", buffer)
 	fmt.Printf("value %d", int32(binary.LittleEndian.Uint32([]byte{11, 0, 0, 0}))) */
-	src := strings.NewReader("GeeksforGeeks\n")
+	/* src := strings.NewReader("GeeksforGeeks\n")
 
 	// Defining destination using Stdout
 	dst := os.Stdout
@@ -44,4 +42,11 @@ func main() {
 	// Calling CopyN method with its parameters
 	_, _ = io.CopyN(dst, src, 5)
 	println("kjadkjdsa" + "jds")
+	*/
+	myMap := make(map[string][]int)
+	//myMap["hey"] = []int{1, 2}
+	myMap["hey"] = append(myMap["hey"], 3)
+	bs, _ := json.Marshal(myMap)
+	fmt.Println(string(bs))
+
 }
