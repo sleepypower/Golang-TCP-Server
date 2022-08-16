@@ -262,7 +262,7 @@ func (client *Client) changeUserName() {
 
 	// Set new username
 	client.username = clientUserName
-	fmt.Printf("Client new username is: %s", client.username)
+	fmt.Printf("A client has changed its username to: %s\n", client.username)
 }
 
 // Handles user request by identifying if the user wants to send a message, file
@@ -280,7 +280,7 @@ func (client *Client) handleClientRequest() {
 		// errors and unexpected behaviour
 
 		// Step 1: Read command buffer
-		fmt.Println("Step 1: Read command")
+		fmt.Println("###Reading for requests###")
 		_, err := io.ReadFull(io.LimitReader(client.connection, 1), commandProtocolBuffer)
 
 		if err != nil {
@@ -343,13 +343,18 @@ func (server *ServerHub) addClient(client *Client) {
 
 // List current clients
 func (server *ServerHub) listClients() {
-	fmt.Println(server.clients)
+	fmt.Println("###Current Clients###")
+	for _, currentClient := range server.clients {
+		fmt.Printf("%s \n", currentClient.username)
+	}
+	fmt.Println("#####################")
+
 }
 
 func (server *ServerHub) addClientToChannel(client *Client, channelName string) {
-	fmt.Printf("Adding client: %v to channel: %s \n", client, channelName)
+	fmt.Printf("Adding client: %v to channel: %s\n", client.username, channelName)
 	server.channels[channelName] = append(server.channels[channelName], client)
-	println("Client added!")
+	fmt.Println("###Client added###")
 }
 
 func main() {
@@ -391,7 +396,7 @@ func main() {
 		}
 
 		// Create new user
-		var client *Client = newClient(connection, "", serverHb)
+		var client *Client = newClient(connection, "Unregistered_User", serverHb)
 		fmt.Println(client)
 
 		// Add client to serverHub
