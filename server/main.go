@@ -47,113 +47,133 @@ func (client *Client) receiveFile() {
 	// Buffer that holds file  length
 	fileLengthBuffer := make([]byte, 8)
 
-	for {
-		/* // Step 1: Read command buffer
-		fmt.Println("Step 1: Read command")
-		bytesRead, err := io.ReadFull(io.LimitReader(client.connection, 1), commandProtocolBuffer)
+	//for {
+	/* // Step 1: Read command buffer
+	fmt.Println("Step 1: Read command")
+	bytesRead, err := io.ReadFull(io.LimitReader(client.connection, 1), commandProtocolBuffer)
 
-		if err != nil {
-			fmt.Println("Step 1 error:", err.Error())
-			break
+	if err != nil {
+		fmt.Println("Step 1 error:", err.Error())
+		break
+	}
+
+	// Convert Command Buffer
+	commandNumber := int(commandProtocolBuffer[0])
+
+	fmt.Printf("Step 1: Received command: %d \n", commandNumber)
+
+	fmt.Printf("Bytes read: %v \n", bytesRead)
+	fmt.Printf("Buffer received: %v\n", commandProtocolBuffer)
+	fmt.Printf("Buffer received: %v\n", commandNumber) */
+
+	println("############# SERVER: START READ FILE #############")
+
+	// Step 2: Read name file length
+	fmt.Println("Step 2: Read name file length")
+
+	// Read File Name length buffer
+	// bytesRead, err = io.ReadFull(client.connection, fileNameLengthBuffer)
+	bytesRead, err := io.ReadFull(io.LimitReader(client.connection, 4), fileNameLengthBuffer)
+	if err != nil {
+		fmt.Println("Step 2 error:", err.Error())
+		//break
+	}
+	fmt.Println(bytesRead)
+
+	// Convert File Name length buffer to the length of the file name
+
+	fmt.Printf("File name length buffer %v\n", fileNameLengthBuffer)
+
+	fileNameLength := int32(binary.LittleEndian.Uint32(fileNameLengthBuffer))
+
+	fmt.Printf("Step 2: Received name file length: %d\n", fileNameLength)
+
+	// Step 3: Read file name
+	fmt.Println("Step 3: Read file name")
+
+	// Buffer that holds the name of the file
+	fileNameBuffer := make([]byte, int64(fileNameLength))
+
+	// Receive fileNameLength bytes which will be the name of the file
+	fmt.Printf("We should receive exactly a string of bytes: %d \n", int64(fileNameLength))
+
+	bytesRead, err = io.ReadFull(io.LimitReader(client.connection, int64(fileNameLength)), fileNameBuffer)
+	if err != nil {
+		fmt.Println("Step 3 error:", err.Error())
+		//break
+	}
+
+	// Convert FileName buffer to string
+	fileName := string(fileNameBuffer)
+	fmt.Printf("Step 3: The name of the file is: %s\n", fileName)
+
+	// Step 4: Get the buffer size of the file
+	bytesRead, err = io.ReadFull(io.LimitReader(client.connection, 8), fileLengthBuffer)
+	if err != nil {
+		fmt.Println("Step 4: Error reading:", err.Error())
+		//break
+	}
+
+	// Convert the buffer size slice to a number
+	fileLength := int64(binary.LittleEndian.Uint64(fileLengthBuffer))
+
+	fmt.Printf("Step 4: We should receive a file of size: %d bytes\n", fileLength)
+
+	// Step 5
+	// Read the buffer and copy it to the created file with name fileName
+	// Create the file
+	receivedFile, err := os.Create(fileName)
+	defer receivedFile.Close()
+
+	fmt.Println("Copying...")
+
+	// Read the file and copy it into fileName
+	// bytesRead, err = io.ReadFull(io.LimitReader(client.connection, fileLength), receivedFile)
+	//bytes, err := io.Copy(client.connection, receivedFile)
+	bytes, err := io.CopyN(receivedFile, client.connection, fileLength)
+	if err != nil {
+		fmt.Println("Step 5: Error reading:", err.Error())
+		//break
+	}
+	fmt.Printf("Step 5: Bytes read: %d", bytes)
+	fmt.Println("Copied successfully")
+
+	if err != nil {
+		fmt.Println("Step 5: Error reading:", err.Error())
+		//break
+	}
+	println("############# SERVER: END READ FILE #############")
+
+	client.server.sendFileToAllChannels(fileName, client)
+
+	//}
+}
+
+func (sever *ServerHub) sendFileToAllChannels(fileName string, sender *Client) {
+	//channels := make([]string, 0)
+	for currentChannelName, membersSlice := range sender.server.channels {
+		for _, client := range membersSlice {
+			if client == sender {
+				client.server.receiveAndReSendFile(fileName, currentChannelName, sender)
+				break
+			}
 		}
-
-		// Convert Command Buffer
-		commandNumber := int(commandProtocolBuffer[0])
-
-		fmt.Printf("Step 1: Received command: %d \n", commandNumber)
-
-		fmt.Printf("Bytes read: %v \n", bytesRead)
-		fmt.Printf("Buffer received: %v\n", commandProtocolBuffer)
-		fmt.Printf("Buffer received: %v\n", commandNumber) */
-
-		println("############# SERVER: START READ FILE #############")
-
-		// Step 2: Read name file length
-		fmt.Println("Step 2: Read name file length")
-
-		// Read File Name length buffer
-		// bytesRead, err = io.ReadFull(client.connection, fileNameLengthBuffer)
-		bytesRead, err := io.ReadFull(io.LimitReader(client.connection, 4), fileNameLengthBuffer)
-		if err != nil {
-			fmt.Println("Step 2 error:", err.Error())
-			break
-		}
-		fmt.Println(bytesRead)
-
-		// Convert File Name length buffer to the length of the file name
-
-		fmt.Printf("File name length buffer %v\n", fileNameLengthBuffer)
-
-		fileNameLength := int32(binary.LittleEndian.Uint32(fileNameLengthBuffer))
-
-		fmt.Printf("Step 2: Received name file length: %d\n", fileNameLength)
-
-		// Step 3: Read file name
-		fmt.Println("Step 3: Read file name")
-
-		// Buffer that holds the name of the file
-		fileNameBuffer := make([]byte, int64(fileNameLength))
-
-		// Receive fileNameLength bytes which will be the name of the file
-		fmt.Printf("We should receive exactly a string of bytes: %d \n", int64(fileNameLength))
-
-		bytesRead, err = io.ReadFull(io.LimitReader(client.connection, int64(fileNameLength)), fileNameBuffer)
-		if err != nil {
-			fmt.Println("Step 3 error:", err.Error())
-			break
-		}
-
-		// Convert FileName buffer to string
-		fileName := string(fileNameBuffer)
-		fmt.Printf("Step 3: The name of the file is: %s\n", fileName)
-
-		// Step 4: Get the buffer size of the file
-		bytesRead, err = io.ReadFull(io.LimitReader(client.connection, 8), fileLengthBuffer)
-		if err != nil {
-			fmt.Println("Step 4: Error reading:", err.Error())
-			break
-		}
-
-		// Convert the buffer size slice to a number
-		fileLength := int64(binary.LittleEndian.Uint64(fileLengthBuffer))
-
-		fmt.Printf("Step 4: We should receive a file of size: %d bytes\n", fileLength)
-
-		// Step 5
-		// Read the buffer and copy it to the created file with name fileName
-		// Create the file
-		receivedFile, err := os.Create(fileName)
-		defer receivedFile.Close()
-
-		fmt.Println("Copying...")
-
-		// Read the file and copy it into fileName
-		// bytesRead, err = io.ReadFull(io.LimitReader(client.connection, fileLength), receivedFile)
-		//bytes, err := io.Copy(client.connection, receivedFile)
-		bytes, err := io.CopyN(receivedFile, client.connection, fileLength)
-		if err != nil {
-			fmt.Println("Step 5: Error reading:", err.Error())
-			break
-		}
-		fmt.Printf("Step 5: Bytes read: %d", bytes)
-		fmt.Println("Copied successfully")
-
-		if err != nil {
-			fmt.Println("Step 5: Error reading:", err.Error())
-			break
-		}
-		println("############# SERVER: END READ FILE #############")
-
-		client.server.receiveAndReSendFile(fileName, "TestChannel")
-
 	}
 }
 
-func (server *ServerHub) receiveAndReSendFile(fileName string, channelName string) {
+func (server *ServerHub) receiveAndReSendFile(fileName string, channelName string, sender *Client) {
 
 	println("############# SERVER: START WRITE FILE #############")
 	// Change client.server.clients to client.server.clients in a channel
-	for _, currentClient := range server.clients {
+	fmt.Println(server.channels)
+	fmt.Println(channelName)
+	fmt.Println(server.channels[channelName])
+	for index, currentClient := range server.channels[channelName] {
+		// if currentClient == sender {
+		// 	continue
+		// }
+		println("@@@@@@@@Now with client", index, "@@@@@@@on@channel@@", channelName)
+		fmt.Println("Current cliennts ##################:", server.clients, currentClient)
 		// Check if filename exceeds 64 bytes
 
 		// Step 1: Send command
@@ -238,9 +258,9 @@ func (server *ServerHub) receiveAndReSendFile(fileName string, channelName strin
 		fmt.Printf("Sent %d bytes of the file named %s \n", bytesWritten, fileName)
 	}
 	println("############# SERVER: END WRITE FILE #############")
-
 }
 
+// TODO change slice of clients in a channel for a set
 func (client *Client) handleChannelSubscription() {
 	// Receive channel name length
 	channelNameLengthBuffer := make([]byte, 4)

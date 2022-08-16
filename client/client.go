@@ -32,6 +32,7 @@ func handleServerResponse(connection net.Conn) {
 
 		// Convert Command Buffer
 		commandNumber := int(commandProtocolBuffer[0])
+		fmt.Printf("The command number is %d\n", commandNumber)
 
 		switch commandNumber {
 		// Send File
@@ -41,6 +42,10 @@ func handleServerResponse(connection net.Conn) {
 			//client.handleChannelSubscription()
 		case 44:
 			//client.changeUserName()
+		default:
+			fmt.Println("Unknown command received: Flushing connection")
+			w := bufio.NewWriter(connection)
+			w.Flush()
 		}
 	}
 }
@@ -63,7 +68,7 @@ func handleUserCommand(userTextInput string, connection net.Conn) {
 		sendFile(connection, arguments[0])
 	case "SUB": // Command 34
 		subscribeToChannel(connection, arguments[0])
-	case "USERNAME":
+	case "USERNAME": // Command 44
 		changeUserName(connection, arguments[0])
 	case "CHNLS":
 		fmt.Println("TODO")
@@ -71,13 +76,14 @@ func handleUserCommand(userTextInput string, connection net.Conn) {
 		fmt.Println("TODO")
 
 	case "HELP":
-		fmt.Println("TODO")
+		fmt.Println("Available commands are: HELP SEND SUB USERNAME CHNLS MSG")
 	default:
 		fmt.Printf("Wrong Syntax, use the 'HELP' command if you need more info")
 	}
 }
 
 func receiveFile(connection net.Conn) {
+	fmt.Println("####Reading####")
 	// The protocol number for receiving a file is 24
 
 	// Buffer that holds file name length
@@ -87,84 +93,84 @@ func receiveFile(connection net.Conn) {
 	fileLengthBuffer := make([]byte, 8)
 
 	// This for should be removed*
-	for {
-		// Step 1: Read name file length
-		fmt.Println("Step 1: Read name file length")
+	//for {
+	// Step 1: Read name file length
+	fmt.Println("Step 1: Read name file length")
 
-		// Read File Name length buffer
-		// bytesRead, err = io.ReadFull(client.connection, fileNameLengthBuffer)
-		bytesRead, err := io.ReadFull(io.LimitReader(connection, 4), fileNameLengthBuffer)
-		if err != nil {
-			fmt.Println("Step 1 error:", err.Error())
-			break
-		}
-		fmt.Println(bytesRead)
-
-		// Convert File Name length buffer to the length of the file name
-
-		fmt.Printf("File name length buffer %v\n", fileNameLengthBuffer)
-
-		fileNameLength := int32(binary.LittleEndian.Uint32(fileNameLengthBuffer))
-
-		fmt.Printf("Step 2: Received name file length: %d\n", fileNameLength)
-
-		// Step 3: Read file name
-		fmt.Println("Step 3: Read file name")
-
-		// Buffer that holds the name of the file
-		fileNameBuffer := make([]byte, int64(fileNameLength))
-
-		// Receive fileNameLength bytes which will be the name of the file
-		fmt.Printf("We should receive exactly a string of bytes: %d \n", int64(fileNameLength))
-
-		bytesRead, err = io.ReadFull(io.LimitReader(connection, int64(fileNameLength)), fileNameBuffer)
-		if err != nil {
-			fmt.Println("Step 3 error:", err.Error())
-			break
-		}
-
-		// Convert FileName buffer to string
-		fileName := string(fileNameBuffer)
-		fmt.Printf("Step 3: The name of the file is: %s\n", fileName)
-
-		// Step 4: Get the buffer size of the file
-		bytesRead, err = io.ReadFull(io.LimitReader(connection, 8), fileLengthBuffer)
-		if err != nil {
-			fmt.Println("Step 4: Error reading:", err.Error())
-			break
-		}
-
-		// Convert the buffer size slice to a number
-		fileLength := int64(binary.LittleEndian.Uint64(fileLengthBuffer))
-
-		fmt.Printf("Step 4: We should receive a file of size: %d bytes\n", fileLength)
-
-		// Step 5
-		// Read the buffer and copy it to the created file with name fileName
-		// Create the file
-
-		receivedFile, err := os.Create("Client_" + fileName)
-		defer receivedFile.Close()
-
-		fmt.Println("Copying...")
-
-		// Read the file and copy it into fileName
-		// bytesRead, err = io.ReadFull(io.LimitReader(client.connection, fileLength), receivedFile)
-		//bytes, err := io.Copy(client.connection, receivedFile)
-		bytes, err := io.CopyN(receivedFile, connection, fileLength)
-		if err != nil {
-			fmt.Println("Step 5: Error reading:", err.Error())
-			break
-		}
-		fmt.Printf("Step 5: Bytes read: %d", bytes)
-		fmt.Println("Copied successfully")
-
-		if err != nil {
-			fmt.Println("Step 5: Error reading:", err.Error())
-			break
-		}
-
+	// Read File Name length buffer
+	// bytesRead, err = io.ReadFull(client.connection, fileNameLengthBuffer)
+	bytesRead, err := io.ReadFull(io.LimitReader(connection, 4), fileNameLengthBuffer)
+	if err != nil {
+		fmt.Println("Step 1 error:", err.Error())
+		//break
 	}
+	fmt.Println(bytesRead)
+
+	// Convert File Name length buffer to the length of the file name
+
+	fmt.Printf("File name length buffer %v\n", fileNameLengthBuffer)
+
+	fileNameLength := int32(binary.LittleEndian.Uint32(fileNameLengthBuffer))
+
+	fmt.Printf("Step 2: Received name file length: %d\n", fileNameLength)
+
+	// Step 3: Read file name
+	fmt.Println("Step 3: Read file name")
+
+	// Buffer that holds the name of the file
+	fileNameBuffer := make([]byte, int64(fileNameLength))
+
+	// Receive fileNameLength bytes which will be the name of the file
+	fmt.Printf("We should receive exactly a string of bytes: %d \n", int64(fileNameLength))
+
+	bytesRead, err = io.ReadFull(io.LimitReader(connection, int64(fileNameLength)), fileNameBuffer)
+	if err != nil {
+		fmt.Println("Step 3 error:", err.Error())
+		//break
+	}
+
+	// Convert FileName buffer to string
+	fileName := string(fileNameBuffer)
+	fmt.Printf("Step 3: The name of the file is: %s\n", fileName)
+
+	// Step 4: Get the buffer size of the file
+	bytesRead, err = io.ReadFull(io.LimitReader(connection, 8), fileLengthBuffer)
+	if err != nil {
+		fmt.Println("Step 4: Error reading:", err.Error())
+		//break
+	}
+
+	// Convert the buffer size slice to a number
+	fileLength := int64(binary.LittleEndian.Uint64(fileLengthBuffer))
+
+	fmt.Printf("Step 4: We should receive a file of size: %d bytes\n", fileLength)
+
+	// Step 5
+	// Read the buffer and copy it to the created file with name fileName
+	// Create the file
+
+	receivedFile, err := os.Create(fileName)
+	defer receivedFile.Close()
+
+	fmt.Println("Copying...")
+
+	// Read the file and copy it into fileName
+	// bytesRead, err = io.ReadFull(io.LimitReader(client.connection, fileLength), receivedFile)
+	//bytes, err := io.Copy(client.connection, receivedFile)
+	bytes, err := io.CopyN(receivedFile, connection, fileLength)
+	if err != nil {
+		fmt.Println("Step 5: Error reading:", err.Error())
+		//break
+	}
+	fmt.Printf("Step 5: Bytes read: %d", bytes)
+	fmt.Println("Copied successfully")
+
+	if err != nil {
+		fmt.Println("Step 5: Error reading:", err.Error())
+		//break
+	}
+
+	//}
 }
 
 // The file named 'fileName' will be sent to all the clients subscribed with
@@ -353,7 +359,7 @@ func main() {
 
 	// // make sure to close the connection with the server
 	defer serverConnection.Close()
-	go receiveFile(serverConnection)
+	go handleServerResponse(serverConnection)
 
 	for {
 		// Read user input
@@ -361,7 +367,7 @@ func main() {
 		fmt.Print(">> ")
 		userInputText, _ := reader.ReadString('\n')
 
-		go handleUserCommand(userInputText, serverConnection)
+		handleUserCommand(userInputText, serverConnection)
 
 		// // Send user input message to the server
 		// fmt.Fprintf(serverConnection, userInputText+"\n")
