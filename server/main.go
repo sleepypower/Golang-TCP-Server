@@ -248,7 +248,7 @@ func (client *Client) changeUserName() {
 	clientUserNameLengthBuffer := make([]byte, 4)
 	bytesRead, err := io.ReadFull(io.LimitReader(client.connection, 4), clientUserNameLengthBuffer)
 	if err != nil || bytesRead != 4 {
-		fmt.Println("Error receiving channel name:", err.Error())
+		fmt.Println("ChangeUserNameError:", err.Error())
 		return
 	}
 
@@ -263,6 +263,7 @@ func (client *Client) changeUserName() {
 	// Set new username
 	client.username = clientUserName
 	fmt.Printf("A client has changed its username to: %s\n", client.username)
+	client.server.listClients()
 }
 
 // Handles user request by identifying if the user wants to send a message, file
@@ -345,7 +346,7 @@ func (server *ServerHub) addClient(client *Client) {
 func (server *ServerHub) listClients() {
 	fmt.Println("###Current Clients###")
 	for _, currentClient := range server.clients {
-		fmt.Printf("%s \n", currentClient.username)
+		fmt.Printf(" - %s \n", currentClient.username)
 	}
 	fmt.Println("#####################")
 

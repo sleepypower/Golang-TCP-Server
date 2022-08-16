@@ -22,7 +22,6 @@ func handleServerResponse(connection net.Conn) {
 		// errors and unexpected behaviour
 
 		// Step 1: Read command buffer
-		fmt.Println("Step 1: Read command")
 		_, err := io.ReadFull(io.LimitReader(connection, 1), commandProtocolBuffer)
 
 		if err != nil {
@@ -54,10 +53,6 @@ func handleUserCommand(userTextInput string, connection net.Conn) {
 	trimmedText := strings.Split(strings.TrimSpace(userTextInput), " ")
 	command := trimmedText[0]
 	arguments := trimmedText[1:]
-
-	println("#######")
-	println(len(arguments))
-	println("#######")
 
 	if len(arguments) == 0 {
 		fmt.Println("Missing command arguments!")
@@ -257,7 +252,6 @@ func sendFile(connection net.Conn, fileName string) {
 		return
 	}
 	fmt.Printf("Sent %d bytes of the file named %s \n", bytesWritten, fileName)
-
 }
 
 // Subscribe to the channel named channelName, if the channel does not exist,
@@ -306,7 +300,6 @@ func subscribeToChannel(connection net.Conn, channelName string) {
 	}
 
 	fmt.Printf("Step 3: sent channel name %d bytes\n", n)
-
 }
 
 // Changes current client username to 'newUserName'
@@ -315,7 +308,7 @@ func changeUserName(connection net.Conn, newUsername string) {
 	// The protocol number for changing the username is 44
 	_, err := connection.Write([]byte{44})
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("We couldn't change the Username")
 		return
 	}
 
@@ -331,7 +324,7 @@ func changeUserName(connection net.Conn, newUsername string) {
 	_, err = connection.Write(newUsernameBufferLength)
 
 	if err != nil {
-		fmt.Println("We couldn't send the message to the server")
+		fmt.Println("We couldn't change the Username")
 		fmt.Println(err)
 		return
 	}
@@ -339,11 +332,12 @@ func changeUserName(connection net.Conn, newUsername string) {
 	// Send new username buffer
 	bytesSent, err := connection.Write(newUsernameBuffer)
 	if err != nil || bytesSent != newUsernameLength {
-		fmt.Println("We couldn't send the message to the server")
+		fmt.Println("We couldn't change the Username")
 		fmt.Println(err)
 		return
 	}
 
+	fmt.Printf("Changed username to: %s\n", newUsername)
 }
 
 func main() {
