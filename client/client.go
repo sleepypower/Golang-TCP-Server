@@ -155,8 +155,6 @@ func receiveFile(connection net.Conn) {
 	fmt.Println("Copying...")
 
 	// Read the file and copy it into fileName
-	// bytesRead, err = io.ReadFull(io.LimitReader(client.connection, fileLength), receivedFile)
-	//bytes, err := io.Copy(client.connection, receivedFile)
 	bytes, err := io.CopyN(receivedFile, connection, fileLength)
 	if err != nil {
 		fmt.Println("Step 5: Error reading:", err.Error())
@@ -368,19 +366,5 @@ func main() {
 		userInputText, _ := reader.ReadString('\n')
 
 		handleUserCommand(userInputText, serverConnection)
-
-		// // Send user input message to the server
-		// fmt.Fprintf(serverConnection, userInputText+"\n")
-
-		// // Read server response
-		// serverMessageResponse, _ := bufio.NewReader(serverConnection).ReadString('\n')
-
-		// // Print server's response
-		// fmt.Print("->: " + serverMessageResponse)
-
-		// if strings.TrimSpace(string(userInputText)) == "STOP" {
-		// 	fmt.Println("TCP client exiting...")
-		// 	return
-		// }
 	}
 }

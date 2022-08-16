@@ -27,44 +27,13 @@ func newClient(connection net.Conn, name string, server *ServerHub) *Client {
 	return &Client{connection: connection, username: name, server: server}
 }
 
-func (client *Client) read() {
-	defer client.connection.Close()
-
-	for {
-
-	}
-}
-
 func (client *Client) receiveFile() {
 	// The protocol number for receiving a file is 24
-
-	// Buffer that holds command protocol number
-	/* commandProtocolBuffer := make([]byte, 1) */
-
 	// Buffer that holds file name length
 	fileNameLengthBuffer := make([]byte, 4)
 
 	// Buffer that holds file  length
 	fileLengthBuffer := make([]byte, 8)
-
-	//for {
-	/* // Step 1: Read command buffer
-	fmt.Println("Step 1: Read command")
-	bytesRead, err := io.ReadFull(io.LimitReader(client.connection, 1), commandProtocolBuffer)
-
-	if err != nil {
-		fmt.Println("Step 1 error:", err.Error())
-		break
-	}
-
-	// Convert Command Buffer
-	commandNumber := int(commandProtocolBuffer[0])
-
-	fmt.Printf("Step 1: Received command: %d \n", commandNumber)
-
-	fmt.Printf("Bytes read: %v \n", bytesRead)
-	fmt.Printf("Buffer received: %v\n", commandProtocolBuffer)
-	fmt.Printf("Buffer received: %v\n", commandNumber) */
 
 	println("############# SERVER: START READ FILE #############")
 
@@ -72,7 +41,6 @@ func (client *Client) receiveFile() {
 	fmt.Println("Step 2: Read name file length")
 
 	// Read File Name length buffer
-	// bytesRead, err = io.ReadFull(client.connection, fileNameLengthBuffer)
 	bytesRead, err := io.ReadFull(io.LimitReader(client.connection, 4), fileNameLengthBuffer)
 	if err != nil {
 		fmt.Println("Step 2 error:", err.Error())
@@ -128,8 +96,6 @@ func (client *Client) receiveFile() {
 	fmt.Println("Copying...")
 
 	// Read the file and copy it into fileName
-	// bytesRead, err = io.ReadFull(io.LimitReader(client.connection, fileLength), receivedFile)
-	//bytes, err := io.Copy(client.connection, receivedFile)
 	bytes, err := io.CopyN(receivedFile, client.connection, fileLength)
 	if err != nil {
 		fmt.Println("Step 5: Error reading:", err.Error())
@@ -145,12 +111,9 @@ func (client *Client) receiveFile() {
 	println("############# SERVER: END READ FILE #############")
 
 	client.server.sendFileToAllChannels(fileName, client)
-
-	//}
 }
 
 func (sever *ServerHub) sendFileToAllChannels(fileName string, sender *Client) {
-	//channels := make([]string, 0)
 	for currentChannelName, membersSlice := range sender.server.channels {
 		for _, client := range membersSlice {
 			if client == sender {
@@ -162,20 +125,11 @@ func (sever *ServerHub) sendFileToAllChannels(fileName string, sender *Client) {
 }
 
 func (server *ServerHub) receiveAndReSendFile(fileName string, channelName string, sender *Client) {
-
-	println("############# SERVER: START WRITE FILE #############")
-	// Change client.server.clients to client.server.clients in a channel
 	fmt.Println(server.channels)
 	fmt.Println(channelName)
 	fmt.Println(server.channels[channelName])
 	for index, currentClient := range server.channels[channelName] {
-		// if currentClient == sender {
-		// 	continue
-		// }
-		println("@@@@@@@@Now with client", index, "@@@@@@@on@channel@@", channelName)
-		fmt.Println("Current cliennts ##################:", server.clients, currentClient)
-		// Check if filename exceeds 64 bytes
-
+		println("Sending ", fileName, " to client ", index, " on channel ", channelName)
 		// Step 1: Send command
 		// The protocol number for sending a file is 24
 		n, err := currentClient.connection.Write([]byte{24})
@@ -376,11 +330,6 @@ func newServerHub() *ServerHub {
 	return &ServerHub{channels: make(map[string][]*Client), clients: []*Client{}}
 }
 
-// Runs the serverHub
-func (server *ServerHub) run() {
-
-}
-
 // When a file is sent to through the server, the server must resend this file
 // to all the clients in a given channel
 func (server *ServerHub) sendFile() {
@@ -403,11 +352,6 @@ func (server *ServerHub) addClientToChannel(client *Client, channelName string) 
 	println("Client added!")
 }
 
-// Send buffer to all clients in the same channel
-// func (server *ServerHub) sendData(channelName string, ) {
-
-// }
-
 func main() {
 
 	// Create TCP server
@@ -426,9 +370,6 @@ func main() {
 
 	// Create server Hub
 	serverHb := newServerHub()
-
-	// TODO this has to listen for any request made by a client, so use go so that it is always listening!
-	go serverHb.run()
 
 	// Each client sends data, that data is received in the server by a client struct
 	// the client struct then sends the data, which is a request to a 'go' channel, which is similar to a queue

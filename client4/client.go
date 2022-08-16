@@ -68,7 +68,7 @@ func handleUserCommand(userTextInput string, connection net.Conn) {
 		sendFile(connection, arguments[0])
 	case "SUB": // Command 34
 		subscribeToChannel(connection, arguments[0])
-	case "USERNAME":
+	case "USERNAME": // Command 44
 		changeUserName(connection, arguments[0])
 	case "CHNLS":
 		fmt.Println("TODO")
@@ -76,7 +76,7 @@ func handleUserCommand(userTextInput string, connection net.Conn) {
 		fmt.Println("TODO")
 
 	case "HELP":
-		fmt.Println("TODO")
+		fmt.Println("Available commands are: HELP SEND SUB USERNAME CHNLS MSG")
 	default:
 		fmt.Printf("Wrong Syntax, use the 'HELP' command if you need more info")
 	}
