@@ -85,7 +85,7 @@ func handleUserCommand(userTextInput string, connection net.Conn) {
 	case "HELP":
 		fmt.Println("Available commands are: HELP SEND SUB USERNAME CHNLS MSG")
 	default:
-		fmt.Printf("Wrong Syntax, use the 'HELP' command if you need more info")
+		fmt.Println("Wrong Syntax, use the 'HELP' command if you need more info")
 	}
 }
 
@@ -115,20 +115,20 @@ func receiveFile(connection net.Conn) {
 
 	// Convert File Name length buffer to the length of the file name
 
-	fmt.Printf("File name length buffer %v\n", fileNameLengthBuffer)
+	//fmt.Printf("File name length buffer %v\n", fileNameLengthBuffer)
 
 	fileNameLength := int32(binary.LittleEndian.Uint32(fileNameLengthBuffer))
 
-	fmt.Printf("Step 2: Received name file length: %d\n", fileNameLength)
+	//fmt.Printf("Step 2: Received name file length: %d\n", fileNameLength)
 
 	// Step 3: Read file name
-	fmt.Println("Step 3: Read file name")
+	//fmt.Println("Step 3: Read file name")
 
 	// Buffer that holds the name of the file
 	fileNameBuffer := make([]byte, int64(fileNameLength))
 
 	// Receive fileNameLength bytes which will be the name of the file
-	fmt.Printf("We should receive exactly a string of bytes: %d \n", int64(fileNameLength))
+	//fmt.Printf("We should receive exactly a string of bytes: %d \n", int64(fileNameLength))
 
 	bytesRead, err = io.ReadFull(io.LimitReader(connection, int64(fileNameLength)), fileNameBuffer)
 	if err != nil {
@@ -138,7 +138,7 @@ func receiveFile(connection net.Conn) {
 
 	// Convert FileName buffer to string
 	fileName := string(fileNameBuffer)
-	fmt.Printf("Step 3: The name of the file is: %s\n", fileName)
+	fmt.Printf("Receiving a file named: %s\n", fileName)
 
 	// Step 4: Get the buffer size of the file
 	bytesRead, err = io.ReadFull(io.LimitReader(connection, 8), fileLengthBuffer)
@@ -150,7 +150,7 @@ func receiveFile(connection net.Conn) {
 	// Convert the buffer size slice to a number
 	fileLength := int64(binary.LittleEndian.Uint64(fileLengthBuffer))
 
-	fmt.Printf("Step 4: We should receive a file of size: %d bytes\n", fileLength)
+	//fmt.Printf("Step 4: We should receive a file of size: %d bytes\n", fileLength)
 
 	// Step 5
 	// Read the buffer and copy it to the created file with name fileName
@@ -167,8 +167,8 @@ func receiveFile(connection net.Conn) {
 		fmt.Println("Step 5: Error reading:", err.Error())
 		//break
 	}
-	fmt.Printf("Step 5: Bytes read: %d", bytes)
-	fmt.Println("Copied successfully")
+
+	fmt.Printf("Bytes read: %d\n", bytes)
 
 	if err != nil {
 		fmt.Println("Step 5: Error reading:", err.Error())
@@ -180,6 +180,9 @@ func receiveFile(connection net.Conn) {
 // the same channels as the current client
 func sendFile(connection net.Conn, fileName string) {
 
+	fmt.Printf("Sending %s to all clients subscribed to the following channels:\n", fileName)
+	listChannels()
+
 	// Check if filename exceeds 64 bytes
 
 	// Step 1: Send command
@@ -189,8 +192,9 @@ func sendFile(connection net.Conn, fileName string) {
 		fmt.Println(err)
 		return
 	}
+	fmt.Printf("Sending %d byte (command)\n", n)
 
-	fmt.Printf("Step 1: sent %d bytes\n", n)
+	//fmt.Printf("Step 1: sent %d bytes\n", n)
 
 	//Open the file
 	file, err := os.Open(strings.TrimSpace(fileName))
@@ -213,11 +217,11 @@ func sendFile(connection net.Conn, fileName string) {
 	// Convert string name to bytes and get the length
 	fileNameInBytes := []byte(fileName)
 	fileNameInBytesSize := len(fileNameInBytes)
-	fmt.Printf("Step 2: the size in bytes of the file names length is %d bytes\n", fileNameInBytesSize)
+	//fmt.Printf("Step 2: the size in bytes of the file names length is %d bytes\n", fileNameInBytesSize)
 
 	fileNameBufferLength := make([]byte, 4)
 	binary.LittleEndian.PutUint32(fileNameBufferLength, uint32(fileNameInBytesSize))
-	fmt.Printf("The buffer of the length is %v \n", fileNameBufferLength)
+	//fmt.Printf("The buffer of the length is %v \n", fileNameBufferLength)
 
 	// Step 2: Send file name size
 	n, err = connection.Write(fileNameBufferLength)
@@ -228,7 +232,7 @@ func sendFile(connection net.Conn, fileName string) {
 		return
 	}
 
-	fmt.Printf("Step 2: sent %d bytes\n", n)
+	//fmt.Printf("Step 2: sent %d bytes\n", n)
 
 	// Step 3: Send file name buffer
 	n, err = connection.Write([]byte(fileName))
@@ -238,10 +242,10 @@ func sendFile(connection net.Conn, fileName string) {
 		return
 	}
 
-	fmt.Printf("Step 3: sent %d bytes\n", n)
+	//fmt.Printf("Step 3: sent %d bytes\n", n)
 
 	// Step 4: Send file buffer size
-	fmt.Println("file size in bytes is", fileSize)
+	//fmt.Println("file size in bytes is", fileSize)
 
 	fileSizeBuffer := make([]byte, 8)
 	binary.LittleEndian.PutUint64(fileSizeBuffer, uint64(fileSize))
