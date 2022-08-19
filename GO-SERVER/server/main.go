@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net"
+	"net/http"
 	"os"
 	"strings"
 )
@@ -399,7 +400,7 @@ func (server *ServerHub) addClientToChannel(client *Client, channelName string) 
 	fmt.Println("###Client added###")
 }
 
-// Retruns the number of active clients
+// Returns the number of active clients
 func (server *ServerHub) getNumberOfClients() int {
 	currentUsers := 0
 
@@ -408,6 +409,31 @@ func (server *ServerHub) getNumberOfClients() int {
 	return currentUsers
 
 }
+
+// Returns the number of channels
+func (server *ServerHub) getNumberOfChannels() int {
+	currentChannels := 0
+
+	currentChannels = len(server.channels)
+
+	return currentChannels
+
+}
+
+func requestHandler(w http.ResponseWriter, r *http.Request) {
+
+	_, _ = fmt.Fprintf(w, `{ "users_connected": "%d", 
+							 "files_sent": "%d", 
+							 "bytes_sent": "%d", 
+							 "channels": "%d"}`,
+		serverHb.getNumberOfClients(),
+		serverHb.getNumberOfClients(),
+		serverHb.getNumberOfClients(),
+		serverHb.getNumberOfChannels())
+
+}
+
+var serverHb = newServerHub()
 
 func main() {
 
@@ -422,11 +448,19 @@ func main() {
 		return
 	}
 
+	// Create server Hub
+
 	// Close the server just before the program ends
 	defer serverConnection.Close()
 
-	// Create server Hub
-	serverHb := newServerHub()
+	// Handle Front End requests
+	http.HandleFunc("/api/thumbnail", requestHandler)
+
+	fs := http.FileServer(http.Dir("../../tcp-server-frontend/dist"))
+	http.Handle("/", fs)
+
+	fmt.Println("Server listening on port 3000")
+	go http.ListenAndServe(":3000", nil)
 
 	// Each client sends data, that data is received in the server by a client struct
 	// the client struct then sends the data, which is a request to a 'go' channel, which is similar to a queue
