@@ -27,6 +27,14 @@ func newClient(connection net.Conn, name string, server *ServerHub) *Client {
 	return &Client{connection: connection, username: name, server: server}
 }
 
+func (client *Client) handleConnectionError(err error) {
+
+	if err != nil {
+		client.server.deleteClient(client)
+	}
+
+}
+
 func (client *Client) receiveFile() {
 	// The protocol number for receiving a file is 24
 	// Buffer that holds file name length
@@ -214,6 +222,35 @@ func (server *ServerHub) receiveAndReSendFile(fileName string, channelName strin
 	println("############# SERVER: END WRITE FILE #############")
 }
 
+func (server *ServerHub) deleteClient(clientToBeDeleted *Client) {
+
+	// Delete client in clients slice
+	for i, currentClient := range server.clients {
+		if currentClient == clientToBeDeleted {
+			server.clients = removeHelper(server.clients, i)
+		}
+	}
+
+	// Delete client in all the channels that it appears on
+	for channelName, channel := range server.channels {
+		for i, currentClient := range channel {
+			if currentClient == clientToBeDeleted {
+				server.channels[channelName] = removeHelper(server.clients, i)
+			}
+		}
+	}
+	clientToBeDeleted.connection.Close()
+	clientToBeDeleted.connection = nil
+
+	fmt.Printf("Client %s has been deleted!\n", clientToBeDeleted.username)
+
+}
+
+func removeHelper(s []*Client, i int) []*Client {
+	s[i] = s[len(s)-1]
+	return s[:len(s)-1]
+}
+
 // TODO change slice of clients in a channel for a set
 func (client *Client) handleChannelSubscription() {
 	// Receive channel name length
@@ -284,6 +321,8 @@ func (client *Client) handleClientRequest() {
 		fmt.Println("###Reading for requests###")
 		_, err := io.ReadFull(io.LimitReader(client.connection, 1), commandProtocolBuffer)
 
+		client.handleConnectionError(err)
+
 		if err != nil {
 			fmt.Println("Step 1 error:", err.Error())
 			break
@@ -349,6 +388,8 @@ func (server *ServerHub) listClients() {
 		fmt.Printf(" - %s \n", currentClient.username)
 	}
 	fmt.Println("#####################")
+	fmt.Printf("The number of active clients is %d", len(server.clients))
+	fmt.Printf("The number of channels is %d", len(server.channels))
 
 }
 
@@ -356,6 +397,16 @@ func (server *ServerHub) addClientToChannel(client *Client, channelName string) 
 	fmt.Printf("Adding client: %v to channel: %s\n", client.username, channelName)
 	server.channels[channelName] = append(server.channels[channelName], client)
 	fmt.Println("###Client added###")
+}
+
+// Retruns the number of active clients
+func (server *ServerHub) getNumberOfClients() int {
+	currentUsers := 0
+
+	currentUsers = len(server.clients)
+
+	return currentUsers
+
 }
 
 func main() {
