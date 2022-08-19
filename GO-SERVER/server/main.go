@@ -138,6 +138,11 @@ func (server *ServerHub) receiveAndReSendFile(fileName string, channelName strin
 	fmt.Println(channelName)
 	fmt.Println(server.channels[channelName])
 	for index, currentClient := range server.channels[channelName] {
+
+		if currentClient == sender {
+			continue
+		}
+
 		println("Sending ", fileName, " to client ", index, " on channel ", channelName)
 		// Step 1: Send command
 		// The protocol number for sending a file is 24
@@ -218,6 +223,8 @@ func (server *ServerHub) receiveAndReSendFile(fileName string, channelName strin
 			fmt.Println(err)
 			return
 		}
+		currentClient.server.bytesSent += bytesWritten
+		currentClient.server.filesSent += 1
 		fmt.Printf("Sent %d bytes of the file named %s \n", bytesWritten, fileName)
 	}
 	println("############# SERVER: END WRITE FILE #############")
@@ -354,9 +361,8 @@ type ServerHub struct {
 	// Store a pointer to each client
 	clients []*Client
 
-	//newClient
-
-	//commandsChannel chan
+	bytesSent int64
+	filesSent int
 }
 
 // Creates a new ServerHub and returns a pointer to it
@@ -368,7 +374,7 @@ type ServerHub struct {
 // pointer to the new Client
 func newServerHub() *ServerHub {
 
-	return &ServerHub{channels: make(map[string][]*Client), clients: []*Client{}}
+	return &ServerHub{channels: make(map[string][]*Client), clients: []*Client{}, bytesSent: 0, filesSent: 0}
 }
 
 // When a file is sent to through the server, the server must resend this file
@@ -420,6 +426,29 @@ func (server *ServerHub) getNumberOfChannels() int {
 
 }
 
+// Returns the number of Bytes sent
+func (server *ServerHub) getBytesSent() int64 {
+	var BytesSent int64
+	BytesSent = 0
+
+	BytesSent = int64(server.bytesSent)
+
+	return int64(BytesSent)
+
+}
+
+// Returns the number of Files sent
+func (server *ServerHub) getFilesSent() int {
+	FilesSent := 0
+
+	FilesSent = server.filesSent
+
+	return FilesSent
+
+}
+
+// Get channel names for a client
+
 func requestHandler(w http.ResponseWriter, r *http.Request) {
 
 	_, _ = fmt.Fprintf(w, `{ "users_connected": "%d", 
@@ -427,8 +456,8 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 							 "bytes_sent": "%d", 
 							 "channels": "%d"}`,
 		serverHb.getNumberOfClients(),
-		serverHb.getNumberOfClients(),
-		serverHb.getNumberOfClients(),
+		serverHb.getFilesSent(),
+		serverHb.getBytesSent(),
 		serverHb.getNumberOfChannels())
 
 }

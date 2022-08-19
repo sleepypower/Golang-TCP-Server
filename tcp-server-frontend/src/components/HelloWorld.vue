@@ -53,6 +53,7 @@ export default {
           this.users_connected = response.data.users_connected;
           this.files_sent = response.data.files_sent;
           this.bytes_sent = response.data.bytes_sent;
+          this.channels = response.data.channels;
         })
         .catch((error) => {
           window.alert(`The API returned an error: ${error}`);
