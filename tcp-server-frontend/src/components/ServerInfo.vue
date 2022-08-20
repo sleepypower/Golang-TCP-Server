@@ -3,16 +3,20 @@
     <!-- <h1>Server Info</h1> -->
 
     <div class="containerLeft">
-      <h1>981273789</h1>
+      <h1>{{ bytes_sent }}</h1>
       <p>Bytes Sent</p>
       <hr class="rounded" />
     </div>
     <div class="containerRight">
       <div class="containerSmall">
-        <p>Files Sent <span>32</span></p>
+        <p>
+          Files Sent <span>{{ files_sent }}</span>
+        </p>
       </div>
       <div class="containerSmall">
-        <p>Channels <span>12</span></p>
+        <p>
+          Channels <span>{{ channels }}</span>
+        </p>
       </div>
     </div>
   </div>
@@ -26,12 +30,25 @@ export default {
   name: "HelloWorld",
 
   data() {
-    return {
-      users_connected: 0,
-      files_sent: 0,
-      bytes_sent: 0,
-      channels: 0,
-    };
+    return {};
+  },
+  props: {
+    users_connected: {
+      type: Number,
+      default: 0,
+    },
+    files_sent: {
+      type: Number,
+      default: 0,
+    },
+    bytes_sent: {
+      type: Number,
+      default: 0,
+    },
+    channels: {
+      type: Number,
+      default: 0,
+    },
   },
 
   methods: {},

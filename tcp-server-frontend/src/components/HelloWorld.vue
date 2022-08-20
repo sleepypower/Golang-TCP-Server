@@ -23,19 +23,6 @@
     <div class="rightContainer">
       <div class="topContainer">
         <h1>Users</h1>
-        <!-- <vueper-slides
-          class="no-shadow"
-          arrows-outside
-          bullets-outside
-          transition-speed="250"
-        >
-          <vueper-slide
-            v-for="i in 6"
-            :key="i"
-            :title="i.toString()"
-            :style="'background-color: ' + ['#ff5252', '#42b983'][i % 2]"
-          />
-        </vueper-slides> -->
         <vueper-slides
           class="no-shadow"
           :visible-slides="3"
@@ -46,15 +33,21 @@
           :breakpoints="{ 800: { visibleSlides: 2, slideMultiple: 2 } }"
         >
           <vueper-slide
-            class="slideClient"
-            v-for="i in 10"
+            v-for="(slide, i) in clients"
             :key="i"
-            :title="i.toString()"
+            :title="slide.username"
+            :content="slide.channels"
           />
         </vueper-slides>
       </div>
-      <ServerInfo />
+      <ServerInfo
+        :bytes_sent="bytes_sent"
+        :channels="channels"
+        :files_sent="files_sent"
+        :users_connected="users_connected"
+      />
     </div>
+    <h1>{{ clients }}</h1>
   </div>
 </template>
 
@@ -73,7 +66,10 @@ export default {
       files_sent: 0,
       bytes_sent: 0,
       channels: 0,
-      clients: {},
+      clients: [
+        // { username: "DAVID", channels: ["hajsd", "sd"] },
+        // { username: "LD", channels: [] },
+      ],
     };
   },
   methods: {

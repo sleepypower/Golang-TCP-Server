@@ -358,7 +358,7 @@ func (client *Client) toJson() string {
 	for _, chn := range client.channels {
 		channelsSlice = append(channelsSlice, `"`+chn+`"`)
 	}
-	jsonClient := `"` + client.username + `":` + `{"username":"` + client.username + `", "channels":[` + strings.Join(channelsSlice, ",") + `]}`
+	jsonClient := `{"username":"` + client.username + `", "channels":[` + strings.Join(channelsSlice, ",") + `]}`
 	return jsonClient
 }
 
@@ -389,14 +389,14 @@ func newServerHub() *ServerHub {
 }
 
 func (server *ServerHub) clientsToJson() string {
-	clientsJson := ``
+	clientsJson := `[`
 	for i, client := range server.clients {
 		clientsJson += client.toJson()
 		if i != len(server.clients)-1 {
 			clientsJson += `,`
 		}
 	}
-	// clientsJson += `}`
+	clientsJson += `]`
 
 	return clientsJson
 }
@@ -483,7 +483,7 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 							 "files_sent": "%d", 
 							 "bytes_sent": "%d", 
 							 "channels": "%d",
-							 "clients": {%s}
+							 "clients": %s
 							}`,
 		serverHb.getNumberOfClients(),
 		serverHb.getFilesSent(),
