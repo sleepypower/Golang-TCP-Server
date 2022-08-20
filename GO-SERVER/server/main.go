@@ -15,6 +15,7 @@ type Client struct {
 	connection net.Conn
 	username   string
 	server     *ServerHub
+	channels   []string
 }
 
 // Creates a new Client and returns a pointer to it
@@ -25,7 +26,7 @@ type Client struct {
 // Output:
 // pointer to the new Client
 func newClient(connection net.Conn, name string, server *ServerHub) *Client {
-	return &Client{connection: connection, username: name, server: server}
+	return &Client{connection: connection, username: name, server: server, channels: make([]string, 0)}
 }
 
 func (client *Client) handleConnectionError(err error) {
@@ -286,6 +287,7 @@ func (client *Client) handleChannelSubscription() {
 	// Subscribe the client to the channel
 	// If the channel does not exist, create it
 	client.server.addClientToChannel(client, channelName)
+	client.channels = append(client.channels, channelName)
 }
 
 func (client *Client) changeUserName() {
@@ -351,6 +353,15 @@ func (client *Client) handleClientRequest() {
 	}
 }
 
+func (client *Client) toJson() string {
+	channelsSlice := make([]string, 0)
+	for _, chn := range client.channels {
+		channelsSlice = append(channelsSlice, `"`+chn+`"`)
+	}
+	jsonClient := `"` + client.username + `":` + `{"username":"` + client.username + `", "channels":[` + strings.Join(channelsSlice, ",") + `]}`
+	return jsonClient
+}
+
 // // ServerHub
 // It is responsible to handle all the connections and manage messages between
 // clients and channels
@@ -375,6 +386,19 @@ type ServerHub struct {
 func newServerHub() *ServerHub {
 
 	return &ServerHub{channels: make(map[string][]*Client), clients: []*Client{}, bytesSent: 0, filesSent: 0}
+}
+
+func (server *ServerHub) clientsToJson() string {
+	clientsJson := ``
+	for i, client := range server.clients {
+		clientsJson += client.toJson()
+		if i != len(server.clients)-1 {
+			clientsJson += `,`
+		}
+	}
+	// clientsJson += `}`
+
+	return clientsJson
 }
 
 // When a file is sent to through the server, the server must resend this file
@@ -451,14 +475,22 @@ func (server *ServerHub) getFilesSent() int {
 
 func requestHandler(w http.ResponseWriter, r *http.Request) {
 
+	fmt.Printf("#########\n")
+	fmt.Printf("%s", serverHb.clientsToJson())
+	fmt.Printf("\n#########\n")
+	fmt.Println("@@@@@@@@@", serverHb.clientsToJson(), "@@@@@@@@")
 	_, _ = fmt.Fprintf(w, `{ "users_connected": "%d", 
 							 "files_sent": "%d", 
 							 "bytes_sent": "%d", 
-							 "channels": "%d"}`,
+							 "channels": "%d",
+							 "clients": {%s}
+							}`,
 		serverHb.getNumberOfClients(),
 		serverHb.getFilesSent(),
 		serverHb.getBytesSent(),
-		serverHb.getNumberOfChannels())
+		serverHb.getNumberOfChannels(),
+		serverHb.clientsToJson(),
+	)
 
 }
 

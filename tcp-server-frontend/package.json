@@ -14,7 +14,8 @@
     "bootstrap-vue": "^2.22.0",
     "core-js": "^3.8.3",
     "vee-validate": "^4.6.6",
-    "vue": "^3.2.13"
+    "vue": "^3.2.13",
+    "vueperslides": "^3.4.2"
   },
   "devDependencies": {
     "@babel/core": "^7.18.10",

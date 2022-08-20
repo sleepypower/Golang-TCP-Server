@@ -15,42 +15,67 @@
       </div>
     </form>
     <div class="leftContainer">
-      <p>GO TCP SERVER ANALYTICS</p>
-      <h1>{{ users_connected }}</h1>
+      <p class="yellowColor">GO TCP SERVER ANALYTICS</p>
+      <h3>{{ users_connected }}</h3>
       <p>USERS CONNECTED</p>
       <hr class="rounded" />
     </div>
     <div class="rightContainer">
       <div class="topContainer">
         <h1>Users</h1>
-        <!-- <vueper-slides>
-          <vueper-slide v-for="i in 5" :key="i" :title="i.toString()" />
+        <!-- <vueper-slides
+          class="no-shadow"
+          arrows-outside
+          bullets-outside
+          transition-speed="250"
+        >
+          <vueper-slide
+            v-for="i in 6"
+            :key="i"
+            :title="i.toString()"
+            :style="'background-color: ' + ['#ff5252', '#42b983'][i % 2]"
+          />
         </vueper-slides> -->
+        <vueper-slides
+          class="no-shadow"
+          :visible-slides="3"
+          slide-multiple
+          :gap="3"
+          :slide-ratio="1 / 4"
+          :dragging-distance="200"
+          :breakpoints="{ 800: { visibleSlides: 2, slideMultiple: 2 } }"
+        >
+          <vueper-slide
+            class="slideClient"
+            v-for="i in 10"
+            :key="i"
+            :title="i.toString()"
+          />
+        </vueper-slides>
       </div>
-      <div class="bottomContainer">
-        <h1>Files</h1>
-      </div>
+      <ServerInfo />
     </div>
   </div>
 </template>
 
 <script>
-// import { VueperSlides, VueperSlide } from "vueperslides";
-// import "vueperslides/dist/vueperslides.css";
+import { VueperSlides, VueperSlide } from "vueperslides";
+import "vueperslides/dist/vueperslides.css";
 import axios from "axios";
+import ServerInfo from "./ServerInfo.vue";
 
 export default {
   name: "HelloWorld",
-
+  components: { ServerInfo, VueperSlides, VueperSlide },
   data() {
     return {
       users_connected: 0,
       files_sent: 0,
       bytes_sent: 0,
       channels: 0,
+      clients: {},
     };
   },
-
   methods: {
     makeWebsiteThumbnail() {
       // Call the Go API, in this case we only need the URL parameter.
@@ -63,6 +88,7 @@ export default {
           this.files_sent = response.data.files_sent;
           this.bytes_sent = response.data.bytes_sent;
           this.channels = response.data.channels;
+          this.clients = response.data.clients;
         })
         .catch((error) => {
           window.alert(`The API returned an error: ${error}`);
@@ -74,18 +100,25 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style scoped>
+.slideClient {
+  background-color: wheat;
+}
+
 .layoutContainer {
   /* background-color: orange; */
   display: flex;
-  min-height: 700px;
-  padding: 20px 40px;
+  height: 80vh;
+  padding: 80px 120px;
 }
 
 hr.rounded {
   border-top: 8px solid #ffbf0d;
-
   border-radius: 5px;
   width: 80%;
+}
+
+.yellowColor {
+  color: #ffbf0d !important;
 }
 
 .leftContainer {
@@ -93,12 +126,13 @@ hr.rounded {
   color: white;
   display: flex;
   flex-direction: column;
-  justify-content: space-around;
   flex-grow: 0;
-  margin: 20px 60px;
+  justify-content: space-around;
+  margin-right: 80px;
   border-radius: 8px;
   flex-shrink: 4;
-  padding: 60px 20px;
+  padding: 60px;
+  max-width: 300px;
 }
 
 .leftContainer p {
@@ -106,13 +140,16 @@ hr.rounded {
   text-align: center;
   font-weight: bold;
   color: white;
+  margin: 0;
 }
 
-.leftContainer h1 {
+.leftContainer h3 {
   color: #ffbf0d;
   font-size: 150px;
   text-align: center;
   font-weight: bold;
+  padding: 0;
+  margin: 0;
 }
 
 .rightContainer {
@@ -125,25 +162,14 @@ hr.rounded {
 }
 
 .topContainer {
-  flex-grow: 1;
+  flex-grow: 2;
   border-radius: 8px;
   background-color: red;
   padding: 0 20px;
-  margin-bottom: 60px;
+  /* margin-bottom: 60px; */
 }
 
 .topContainer h1 {
   text-align: left;
-}
-
-.bottomContainer {
-  background-color: #5100ff;
-  flex-grow: 1;
-  background-color: 5100ff;
-  border-radius: 8px;
-}
-.bottomContainer h1 {
-  text-align: left;
-  padding: 0 20px;
 }
 </style>
