@@ -1,6 +1,6 @@
 <template>
   <div class="layoutContainer">
-    <form v-on:submit.prevent="makeWebsiteThumbnail">
+    <!-- <form v-on:submit.prevent="makeWebsiteThumbnail">
       <div class="form-group">
         <input
           v-model="websiteUrl"
@@ -13,12 +13,15 @@
       <div class="form-group">
         <button class="btn btn-primary">Generate!</button>
       </div>
-    </form>
+    </form> -->
     <div class="leftContainer">
       <p class="yellowColor">GO TCP SERVER ANALYTICS</p>
       <h3>{{ users_connected }}</h3>
       <p>USERS CONNECTED</p>
       <hr class="rounded" />
+      <button class="requestButton" @click="makeWebsiteThumbnail">
+        Refresh
+      </button>
     </div>
     <div class="rightContainer">
       <div class="topContainer">
@@ -37,6 +40,7 @@
             :key="i"
             :title="slide.username"
             :content="slide.channels"
+            class="slide"
           />
         </vueper-slides>
       </div>
@@ -47,7 +51,6 @@
         :users_connected="users_connected"
       />
     </div>
-    <h1>{{ clients }}</h1>
   </div>
 </template>
 
@@ -66,10 +69,7 @@ export default {
       files_sent: 0,
       bytes_sent: 0,
       channels: 0,
-      clients: [
-        // { username: "DAVID", channels: ["hajsd", "sd"] },
-        // { username: "LD", channels: [] },
-      ],
+      clients: [],
     };
   },
   methods: {
@@ -117,6 +117,24 @@ hr.rounded {
   color: #ffbf0d !important;
 }
 
+.requestButton {
+  background-color: #ffbf0d !important;
+  border-top: 0px solid #ffbf0d;
+  border-radius: 8px;
+  margin: 0 auto;
+  color: white;
+  padding: 10px 20px;
+  width: 60%;
+  font-size: 1.2rem;
+}
+
+.slide {
+  background-color: #5100ff;
+  border-radius: 8px;
+  border: 0px solid #5100ff;
+  font-weight: 700;
+}
+
 .leftContainer {
   background-color: #5100ff;
   color: white;
@@ -160,7 +178,7 @@ hr.rounded {
 .topContainer {
   flex-grow: 2;
   border-radius: 8px;
-  background-color: red;
+  /* background-color: red; */
   padding: 0 20px;
   /* margin-bottom: 60px; */
 }
