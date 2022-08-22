@@ -120,6 +120,9 @@ func (client *Client) receiveFile() {
 	}
 	println("############# SERVER: END READ FILE #############")
 
+	// Step 6
+	// Read the channel buffer and copy it to the created file with name fileName
+
 	client.server.sendFileToAllChannels(fileName, client)
 }
 
