@@ -1,32 +1,23 @@
 <template>
   <div class="layoutContainer">
-    <!-- <form v-on:submit.prevent="makeWebsiteThumbnail">
-      <div class="form-group">
-        <input
-          v-model="websiteUrl"
-          type="text"
-          id="website-input"
-          placeholder="Enter a website"
-          class="form-control"
-        />
-      </div>
-      <div class="form-group">
-        <button class="btn btn-primary">Generate!</button>
-      </div>
-    </form> -->
     <div class="leftContainer">
-      <p class="yellowColor">GO TCP SERVER ANALYTICS</p>
+      <p class="yellowColor">Server Analytics</p>
       <h3>{{ users_connected }}</h3>
-      <p>USERS CONNECTED</p>
+      <p>Users Connected</p>
       <hr class="rounded" />
       <button class="requestButton" @click="makeWebsiteThumbnail">
         Refresh
       </button>
     </div>
+
     <div class="rightContainer">
       <div class="topContainer">
         <h1>Users</h1>
+        <div class="pUsers" v-if="clients.length <= 0">
+          <p>There aren't any users connected</p>
+        </div>
         <vueper-slides
+          v-if="clients.length > 0"
           class="no-shadow"
           :visible-slides="3"
           slide-multiple
@@ -41,7 +32,22 @@
             :title="slide.username"
             :content="slide.channels"
             class="slide"
-          />
+          >
+            <template #content>
+              <div class="slide-container">
+                <div class="slide-name">{{ slide.username }}</div>
+                <div class="slide-body">
+                  <div>Channels</div>
+
+                  <ul>
+                    <li v-for="channel in slide.channels" :key="channel">
+                      {{ channel }}
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </template>
+          </vueper-slide>
         </vueper-slides>
       </div>
       <ServerInfo
@@ -69,7 +75,15 @@ export default {
       files_sent: 0,
       bytes_sent: 0,
       channels: 0,
-      clients: [],
+      clients: [
+        {
+          username: "DAVID",
+          channels: ["mojanggs", "minecraft", "mojang", "minecraft"],
+        },
+        { username: "LD", channels: [] },
+        { username: "DAVID", channels: ["hajsd", "sd"] },
+        { username: "LD", channels: [] },
+      ],
     };
   },
   methods: {
@@ -107,32 +121,14 @@ export default {
   padding: 80px 120px;
 }
 
+.titleH1 {
+  text-align: left;
+}
+
 hr.rounded {
   border-top: 8px solid #ffbf0d;
   border-radius: 5px;
   width: 80%;
-}
-
-.yellowColor {
-  color: #ffbf0d !important;
-}
-
-.requestButton {
-  background-color: #ffbf0d !important;
-  border-top: 0px solid #ffbf0d;
-  border-radius: 8px;
-  margin: 0 auto;
-  color: white;
-  padding: 10px 20px;
-  width: 60%;
-  font-size: 1.2rem;
-}
-
-.slide {
-  background-color: #5100ff;
-  border-radius: 8px;
-  border: 0px solid #5100ff;
-  font-weight: 700;
 }
 
 .leftContainer {
@@ -170,7 +166,7 @@ hr.rounded {
   flex-shrink: 1;
   color: white;
   flex-grow: 7;
-  margin: 20px 10px;
+  margin: 0px 0px;
   display: flex;
   flex-direction: column;
 }
@@ -178,12 +174,74 @@ hr.rounded {
 .topContainer {
   flex-grow: 2;
   border-radius: 8px;
-  /* background-color: red; */
-  padding: 0 20px;
-  /* margin-bottom: 60px; */
 }
 
 .topContainer h1 {
   text-align: left;
+  margin-top: 0;
+}
+
+.yellowColor {
+  color: #ffbf0d !important;
+}
+
+.pUsers {
+  font-size: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-weight: 500;
+  height: 80%;
+}
+
+.requestButton {
+  background-color: #ffbf0d !important;
+  border-top: 0px solid #ffbf0d;
+  border-radius: 8px;
+  margin: 0 auto;
+  color: white;
+  padding: 10px 20px;
+  width: 60%;
+  font-size: 1.2rem;
+}
+
+.slide {
+  background-color: #5100ff;
+  border-radius: 8px;
+  border: 0px solid #5100ff;
+  font-weight: 700;
+}
+
+.slide-container {
+  background-color: #5100ff;
+  border-radius: 8px;
+  border: 0px solid #5100ff;
+  font-weight: 700;
+  height: 100%;
+}
+
+.slide-name {
+  background-color: #4100cc;
+  border-radius: 8px 8px 0px 0px;
+  display: flex;
+  justify-content: start;
+  align-items: center;
+  padding: 20px 20px;
+  font-size: 20px;
+  color: #ffbf0d;
+}
+
+.slide-body {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  padding: 20px;
+}
+
+ul.no-bullets {
+  list-style-type: none; /* Remove bullets */
+  padding: 0; /* Remove padding */
+  margin: 0; /* Remove margins */
 }
 </style>

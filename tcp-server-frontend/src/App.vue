@@ -21,5 +21,6 @@ export default {
   text-align: center;
   color: #2c3e50;
   background-color: #280080;
+  font-family: "Roboto", sans-serif;
 }
 </style>

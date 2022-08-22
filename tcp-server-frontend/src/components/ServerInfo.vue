@@ -1,7 +1,5 @@
 <template>
   <div class="serverInfoContainer">
-    <!-- <h1>Server Info</h1> -->
-
     <div class="containerLeft">
       <h1>{{ bytes_sent }}</h1>
       <p>Bytes Sent</p>
@@ -9,14 +7,10 @@
     </div>
     <div class="containerRight">
       <div class="containerSmall">
-        <p>
-          Files Sent <span>{{ files_sent }}</span>
-        </p>
+        Files Sent <span>{{ files_sent }}</span>
       </div>
       <div class="containerSmall">
-        <p>
-          Channels <span>{{ channels }}</span>
-        </p>
+        Channels <span>{{ channels }}</span>
       </div>
     </div>
   </div>
@@ -73,7 +67,7 @@ export default {
   color: white;
   display: flex;
   flex-direction: column;
-  flex-grow: 0;
+  flex-grow: 1;
   justify-content: space-around;
   border-radius: 8px;
 
@@ -149,6 +143,7 @@ hr.rounded {
   color: #ffbf0d;
   font-size: 40px;
   font-weight: 600;
+  margin-left: 10px;
 }
 
 .containerSmall {
