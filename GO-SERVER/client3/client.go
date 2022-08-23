@@ -183,7 +183,11 @@ func receiveFile(connection net.Conn) {
 // the same channels as the current client
 func sendFile(connection net.Conn, fileName string, channelName string) {
 
-	fmt.Printf("Sending %s to all clients subscribed to the following channels:\n", fileName)
+	channelSendFile := ""
+	if channelName == "" {
+		channelSendFile = "ALL subscribed channels"
+	}
+	fmt.Printf("Sending %s to all clients subscribed to the following channel: %s\n", fileName, channelSendFile)
 	listChannels()
 
 	// Check if filename exceeds 64 bytes
