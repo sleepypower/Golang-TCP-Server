@@ -12,6 +12,7 @@ import (
 
 var currentChannels = make([]string, 0)
 
+// handles the server's response by identifying the first byte of the response
 func handleServerResponse(connection net.Conn) {
 	// Buffer that holds command protocol number
 	commandProtocolBuffer := make([]byte, 1)
@@ -51,6 +52,8 @@ func handleServerResponse(connection net.Conn) {
 	}
 }
 
+// Handles the user input command by triming and spliting the input and then
+// defining what is the command that the user meant to use
 func handleUserCommand(userTextInput string, connection net.Conn) {
 	trimmedText := strings.Split(strings.TrimSpace(userTextInput), " ")
 	command := trimmedText[0]
@@ -92,6 +95,8 @@ func handleUserCommand(userTextInput string, connection net.Conn) {
 	}
 }
 
+// Receives a file sent by the server, including the size of the file, its name
+// and length. Then saves the file in the directory
 func receiveFile(connection net.Conn) {
 	fmt.Println("####Reading####")
 	// The protocol number for receiving a file is 24
@@ -179,8 +184,7 @@ func receiveFile(connection net.Conn) {
 	}
 }
 
-// The file named 'fileName' will be sent to all the clients subscribed with
-// the same channels as the current client
+// Sents the file given through the channel given
 func sendFile(connection net.Conn, fileName string, channelName string) {
 
 	channelSendFile := ""
@@ -306,8 +310,6 @@ func sendFile(connection net.Conn, fileName string, channelName string) {
 	}
 
 	fmt.Printf("Step 7: sent File to channel name %s bytes\n", channelName)
-
-	////////////////
 }
 
 // Subscribe to the channel named channelName, if the channel does not exist,
@@ -397,6 +399,7 @@ func changeUserName(connection net.Conn, newUsername string) {
 	fmt.Printf("Changed username to: %s\n", newUsername)
 }
 
+// Prints the current subscribed channels
 func listChannels() {
 	fmt.Printf("Channels subscribed to: %v \n", currentChannels)
 }
