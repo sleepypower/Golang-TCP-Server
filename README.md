@@ -20,7 +20,7 @@ go run client.go
 ```
 
 ## Commands
-There following commands are currently implemented HELP SEND SUB USERNAME CHNLS
+There following commands are currently implemented
 | Command        | Usage           | What does it do  |
 | ------------- |:-------------:|:-----|
 | SEND      |SEND 'filename.extension' [channelName] |Sends the file to all the channels that the current client is subscribed to. OPTIONAL [channelName]: If given a channel Name, the file will be sent only to the clients subcribed to that channel|
