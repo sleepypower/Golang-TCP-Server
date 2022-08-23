@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"encoding/binary"
 	"fmt"
 	"io"
@@ -10,7 +11,8 @@ import (
 	"strings"
 )
 
-// // Client
+// Client is the struct that handles the connection and attributes related to
+// that connection
 type Client struct {
 	connection net.Conn
 	username   string
@@ -18,17 +20,13 @@ type Client struct {
 	channels   []string
 }
 
-// Creates a new Client and returns a pointer to it
-//
-// Input:
-// connection (net.Conn): connection with the real client
-//
-// Output:
-// pointer to the new Client
+// newClient Creates a new Client with the inputs given and returns a pointer to
+// it
 func newClient(connection net.Conn, name string, server *ServerHub) *Client {
 	return &Client{connection: connection, username: name, server: server, channels: make([]string, 0)}
 }
 
+// Handles the connection when an error 'err' occurs
 func (client *Client) handleConnectionError(err error) {
 
 	if err != nil {
@@ -37,7 +35,9 @@ func (client *Client) handleConnectionError(err error) {
 
 }
 
-func (client *Client) receiveFile() {
+// handleFileReceive Receives a file, including the size of the file, its name
+// and length. Then forwards the message through the channel specified.
+func (client *Client) handleFileReceive() {
 	// The protocol number for receiving a file is 24
 	// Buffer that holds file name length
 	fileNameLengthBuffer := make([]byte, 4)
@@ -150,19 +150,19 @@ func (client *Client) receiveFile() {
 	client.server.sendFileToChannel(fileName, client, channelName)
 }
 
-// Sends the file to all clients listening to 'channelName', if 'channelName' is
+// Sends the file to all clients subscribed to 'channelName', if 'channelName' is
 // empty, sends the file to all the channels
 func (sever *ServerHub) sendFileToChannel(fileName string, sender *Client, channelName string) {
 
 	if channelName != "" {
-		sender.server.receiveAndReSendFile(fileName, channelName, sender)
+		sender.server.reSendFile(fileName, channelName, sender)
 		fmt.Printf("Send file through channel : %s\n", channelName)
 	} else {
 
 		for currentChannelName, membersSlice := range sender.server.channels {
 			for _, client := range membersSlice {
 				if client == sender {
-					client.server.receiveAndReSendFile(fileName, currentChannelName, sender)
+					client.server.reSendFile(fileName, currentChannelName, sender)
 					break
 				}
 			}
@@ -172,7 +172,8 @@ func (sever *ServerHub) sendFileToChannel(fileName string, sender *Client, chann
 
 }
 
-func (server *ServerHub) receiveAndReSendFile(fileName string, channelName string, sender *Client) {
+// Re sends the file given to all the clients subscribed to 'channelName'
+func (server *ServerHub) reSendFile(fileName string, channelName string, sender *Client) {
 	fmt.Println(server.channels)
 	fmt.Println(channelName)
 	fmt.Println(server.channels[channelName])
@@ -269,6 +270,7 @@ func (server *ServerHub) receiveAndReSendFile(fileName string, channelName strin
 	println("############# SERVER: END WRITE FILE #############")
 }
 
+// Deletes the client's occurrences in channels and in the server clients's list
 func (server *ServerHub) deleteClient(clientToBeDeleted *Client) {
 
 	// Delete client in clients slice
@@ -293,12 +295,15 @@ func (server *ServerHub) deleteClient(clientToBeDeleted *Client) {
 
 }
 
+// Removes the client from the slice and returns the new slice
 func removeHelper(s []*Client, i int) []*Client {
 	s[i] = s[len(s)-1]
 	return s[:len(s)-1]
 }
 
-// TODO change slice of clients in a channel for a set
+// handleChannelSubscription receives the channel name and subscribes the client
+// to that channel. If the channel has not been created yet, it creates it and
+// subcribes the client to it
 func (client *Client) handleChannelSubscription() {
 	// Receive channel name length
 	channelNameLengthBuffer := make([]byte, 4)
@@ -328,6 +333,7 @@ func (client *Client) handleChannelSubscription() {
 	client.channels = append(client.channels, channelName)
 }
 
+// Reads the new username and changes the client's username to the new one
 func (client *Client) changeUserName() {
 	// Read username length
 	clientUserNameLengthBuffer := make([]byte, 4)
@@ -352,8 +358,8 @@ func (client *Client) changeUserName() {
 }
 
 // Handles user request by identifying if the user wants to send a message, file
-// or subscribe to a certain channel. If a user subscribes to a channel that
-// does not exist, it will create one
+// or subscribe to a certain channel. This identification ocurrs by the first
+// byte of each client's request
 func (client *Client) handleClientRequest() {
 	// Buffer that holds command protocol number
 	commandProtocolBuffer := make([]byte, 1)
@@ -382,15 +388,20 @@ func (client *Client) handleClientRequest() {
 		switch commandNumber {
 		// Send File
 		case 24:
-			client.receiveFile()
+			client.handleFileReceive()
 		case 34:
 			client.handleChannelSubscription()
 		case 44:
 			client.changeUserName()
+		default:
+			fmt.Println("Unknown command received: Flushing connection")
+			w := bufio.NewWriter(client.connection)
+			w.Flush()
 		}
 	}
 }
 
+// Converts a client to json format
 func (client *Client) toJson() string {
 	channelsSlice := make([]string, 0)
 	for _, chn := range client.channels {
@@ -401,8 +412,8 @@ func (client *Client) toJson() string {
 }
 
 // // ServerHub
-// It is responsible to handle all the connections and manage messages between
-// clients and channels
+// It is responsible to handle all the connections and handle file forwarding
+// through channels
 type ServerHub struct {
 	// Each channel will have a slice of pointers to clients
 	channels map[string][]*Client
@@ -415,17 +426,12 @@ type ServerHub struct {
 }
 
 // Creates a new ServerHub and returns a pointer to it
-//
-// Input:
-// connection (net.Conn): connection with the real client
-//
-// Output:
-// pointer to the new Client
 func newServerHub() *ServerHub {
 
 	return &ServerHub{channels: make(map[string][]*Client), clients: []*Client{}, bytesSent: 0, filesSent: 0}
 }
 
+// Returns a json list of all the clients and their attributes
 func (server *ServerHub) clientsToJson() string {
 	clientsJson := `[`
 	for i, client := range server.clients {
@@ -439,18 +445,12 @@ func (server *ServerHub) clientsToJson() string {
 	return clientsJson
 }
 
-// When a file is sent to through the server, the server must resend this file
-// to all the clients in a given channel
-func (server *ServerHub) sendFile() {
-
-}
-
-// Add client to the server
+// Adds the client to the server
 func (server *ServerHub) addClient(client *Client) {
 	server.clients = append(server.clients, client)
 }
 
-// List current clients
+// return the length of connected clients
 func (server *ServerHub) listClients() {
 	fmt.Println("###Current Clients###")
 	for _, currentClient := range server.clients {
@@ -462,6 +462,9 @@ func (server *ServerHub) listClients() {
 
 }
 
+// Subscribes a client to a channel, all the files sent through that channel
+// will be received by that client and all the clients subscribed to that
+// channel
 func (server *ServerHub) addClientToChannel(client *Client, channelName string) {
 	fmt.Printf("Adding client: %v to channel: %s\n", client.username, channelName)
 	server.channels[channelName] = append(server.channels[channelName], client)
@@ -471,9 +474,7 @@ func (server *ServerHub) addClientToChannel(client *Client, channelName string) 
 // Returns the number of active clients
 func (server *ServerHub) getNumberOfClients() int {
 	currentUsers := 0
-
 	currentUsers = len(server.clients)
-
 	return currentUsers
 
 }
@@ -481,9 +482,7 @@ func (server *ServerHub) getNumberOfClients() int {
 // Returns the number of channels
 func (server *ServerHub) getNumberOfChannels() int {
 	currentChannels := 0
-
 	currentChannels = len(server.channels)
-
 	return currentChannels
 
 }
@@ -492,9 +491,7 @@ func (server *ServerHub) getNumberOfChannels() int {
 func (server *ServerHub) getBytesSent() int64 {
 	var BytesSent int64
 	BytesSent = 0
-
 	BytesSent = int64(server.bytesSent)
-
 	return int64(BytesSent)
 
 }
@@ -502,15 +499,12 @@ func (server *ServerHub) getBytesSent() int64 {
 // Returns the number of Files sent
 func (server *ServerHub) getFilesSent() int {
 	FilesSent := 0
-
 	FilesSent = server.filesSent
-
 	return FilesSent
 
 }
 
-// Get channel names for a client
-
+// Response to the request made by the front-end (VUE.js)
 func requestHandler(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Printf("#########\n")
@@ -532,6 +526,7 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 
 }
 
+// Create server Hub
 var serverHb = newServerHub()
 
 func main() {
@@ -546,8 +541,6 @@ func main() {
 		fmt.Println(error)
 		return
 	}
-
-	// Create server Hub
 
 	// Close the server just before the program ends
 	defer serverConnection.Close()
@@ -588,7 +581,7 @@ func main() {
 		serverHb.addClient(client)
 		serverHb.listClients()
 
-		// go client.receiveFile()
+		// handle client's request
 		go client.handleClientRequest()
 
 	}
