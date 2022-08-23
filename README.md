@@ -9,7 +9,7 @@ Implementation of a TCP-SERVER using Golang
 cd server
 go run main.go
 ```
-Allow access to Windows Defender Firewall__
+Allow access to Windows Defender Firewall<br />
 This will allow the server.go to list to localhost:8080
 
 ### Run Clients
