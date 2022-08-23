@@ -121,20 +121,55 @@ func (client *Client) receiveFile() {
 	println("############# SERVER: END READ FILE #############")
 
 	// Step 6
-	// Read the channel buffer and copy it to the created file with name fileName
+	// Read the channel name length through 4 bytes (1 int)
 
-	client.server.sendFileToAllChannels(fileName, client)
+	// Receive channel name length
+	channelNameLengthBuffer := make([]byte, 4)
+
+	bytesRead, err = io.ReadFull(io.LimitReader(client.connection, 4), channelNameLengthBuffer)
+	if err != nil {
+		fmt.Println("Error receiving the length of the channel name:", err.Error())
+		return
+	}
+	fmt.Println(bytesRead)
+
+	channelNameLength := int32(binary.LittleEndian.Uint32(channelNameLengthBuffer))
+
+	// Step 7
+	// Receive channel name
+	channelNameBuffer := make([]byte, channelNameLength)
+	bytesRead, err = io.ReadFull(io.LimitReader(client.connection, int64(channelNameLength)), channelNameBuffer)
+	if err != nil {
+		fmt.Println("Error receiving channel name:", err.Error())
+		return
+	}
+	channelName := string(channelNameBuffer)
+	println("Azula:: Channel name is: ", channelName)
+
+	////////
+	client.server.sendFileToChannel(fileName, client, channelName)
 }
 
-func (sever *ServerHub) sendFileToAllChannels(fileName string, sender *Client) {
-	for currentChannelName, membersSlice := range sender.server.channels {
-		for _, client := range membersSlice {
-			if client == sender {
-				client.server.receiveAndReSendFile(fileName, currentChannelName, sender)
-				break
+// Sends the file to all clients listening to 'channelName', if 'channelName' is
+// empty, sends the file to all the channels
+func (sever *ServerHub) sendFileToChannel(fileName string, sender *Client, channelName string) {
+
+	if channelName != "" {
+		sender.server.receiveAndReSendFile(fileName, channelName, sender)
+		fmt.Printf("Send file through channel : %s\n", channelName)
+	} else {
+
+		for currentChannelName, membersSlice := range sender.server.channels {
+			for _, client := range membersSlice {
+				if client == sender {
+					client.server.receiveAndReSendFile(fileName, currentChannelName, sender)
+					break
+				}
 			}
 		}
+		fmt.Printf("Send file through ALL channels : \n")
 	}
+
 }
 
 func (server *ServerHub) receiveAndReSendFile(fileName string, channelName string, sender *Client) {
