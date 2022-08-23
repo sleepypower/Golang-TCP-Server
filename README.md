@@ -23,7 +23,7 @@ go run client.go
 There are currently implemented the following commands HELP SEND SUB USERNAME CHNLS MSG
 | Command        | Usage           | What does it do  |
 | ------------- |:-------------:|:-----|
-| SEND      |SEND 'filename.extension' |Sends the file to all the channels that the current client is subscribed to|
+| SEND      |SEND 'filename.extension' [channelName] |Sends the file to all the channels that the current client is subscribed to. OPTIONAL [channelName]: If given a channel Name, the file will be sent only to the clients subcribed to that channel|
 | SUB      |SUB 'channelName'|Subscribes the client to the channel given, all files sent to that channel will be received (if a certain client is subscribed to it) |
 | USERNAME |USERNAME 'newUsername'|Changes the client's username to 'newUsername'|
 | CHNLS |USERNAME|Lists all the channels that the current client is subscribed to|
