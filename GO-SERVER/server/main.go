@@ -293,6 +293,8 @@ func (client *Client) handleClientRequest() {
 		// Convert Command Buffer
 		commandNumber := int(commandProtocolBuffer[0])
 
+		print("Command number is %d\n", commandNumber)
+
 		switch commandNumber {
 		// Send File
 		case 24:
