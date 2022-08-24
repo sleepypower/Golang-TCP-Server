@@ -388,15 +388,6 @@ func (server *ServerHub) reSendFile(fileName string, channelName string, sender 
 		}
 
 		println("Sending ", fileName, " to client ", index, " on channel ", channelName)
-		// Step 1: Send command
-		// The protocol number for sending a file is 24
-		n, err := currentClient.connection.Write([]byte{24})
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-
-		fmt.Printf("Step 1: sent %d bytes\n", n)
 
 		//Open the file
 		file, err := os.Open(strings.TrimSpace(fileName))
@@ -415,6 +406,16 @@ func (server *ServerHub) reSendFile(fileName string, channelName string, sender 
 
 		// make sure to close the file
 		defer file.Close()
+
+		// Step 1: Send command
+		// The protocol number for sending a file is 24
+		n, err := currentClient.connection.Write([]byte{24})
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+
+		fmt.Printf("Step 1: sent %d bytes\n", n)
 
 		// Convert string name to bytes and get the length
 		fileNameInBytes := []byte(fileName)

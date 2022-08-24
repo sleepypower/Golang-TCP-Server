@@ -72,7 +72,7 @@ func handleUserCommand(userTextInput string, connection net.Conn) {
 
 	case "SUB": // Command 34
 		if len(arguments) == 0 {
-			fmt.Println("Missing command arguments!")
+			fmt.Println("Missing command arguments!\n")
 		} else {
 			subscribeToChannel(connection, arguments[0])
 		}
@@ -194,7 +194,12 @@ func sendFile(connection net.Conn, fileName string, channelName string) {
 	fmt.Printf("Sending %s to all clients subscribed to the following channel: %s\n", fileName, channelSendFile)
 	listChannels()
 
-	// Check if filename exceeds 64 bytes
+	//Open the file
+	file, err := os.Open(strings.TrimSpace(fileName))
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
 
 	// Step 1: Send command
 	// The protocol number for sending a file is 24
@@ -207,12 +212,6 @@ func sendFile(connection net.Conn, fileName string, channelName string) {
 
 	//fmt.Printf("Step 1: sent %d bytes\n", n)
 
-	//Open the file
-	file, err := os.Open(strings.TrimSpace(fileName))
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
 	// Get file stats
 	fileSt, err := file.Stat()
 	if err != nil {
@@ -358,7 +357,7 @@ func subscribeToChannel(connection net.Conn, channelName string) {
 
 	//fmt.Printf("Step 3: sent channel name %d bytes\n", n)
 	currentChannels = append(currentChannels, channelName)
-	fmt.Printf("Channels subscribed to: %v \n", currentChannels)
+	fmt.Printf("Clients subscribed to: %v \n", currentChannels)
 }
 
 // Reads the response of the server regarding the status of the subscription to
