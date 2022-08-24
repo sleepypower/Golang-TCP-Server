@@ -9,7 +9,7 @@ Implementation of a TCP-SERVER using Golang
 cd server
 go run main.go
 ```
-Allow access to Windows Defender Firewall
+Allow access to Windows Defender Firewall<br />
 This will allow the server.go to list to localhost:8080
 
 ### Run Clients
@@ -20,10 +20,10 @@ go run client.go
 ```
 
 ## Commands
-There are currently implemented the following commands HELP SEND SUB USERNAME CHNLS MSG
+There following commands are currently implemented
 | Command        | Usage           | What does it do  |
 | ------------- |:-------------:|:-----|
-| SEND      |SEND 'filename.extension' |Sends the file to all the channels that the current client is subscribed to|
+| SEND      |SEND 'filename.extension' [channelName] |Sends the file to all the channels that the current client is subscribed to. OPTIONAL [channelName]: If given a channel Name, the file will be sent only to the clients subcribed to that channel|
 | SUB      |SUB 'channelName'|Subscribes the client to the channel given, all files sent to that channel will be received (if a certain client is subscribed to it) |
 | USERNAME |USERNAME 'newUsername'|Changes the client's username to 'newUsername'|
 | CHNLS |USERNAME|Lists all the channels that the current client is subscribed to|
