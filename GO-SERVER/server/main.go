@@ -581,7 +581,7 @@ var serverHb = newServerHub()
 func main() {
 
 	// Create TCP server
-	serverConnection, error := net.Listen("tcp", ":8080")
+	serverConnection, error := net.Listen("tcp", ":8085")
 
 	// Check if an error occured
 	// Note: because 'go' forces you to use each variable you declare, error

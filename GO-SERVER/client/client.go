@@ -442,7 +442,7 @@ func listChannels() {
 func main() {
 
 	// Connect with the server
-	serverConnection, err := net.Dial("tcp", "0.0.0.0:8080")
+	serverConnection, err := net.Dial("tcp", "0.0.0.0:8085")
 	if err != nil {
 		fmt.Println(err)
 		return
