@@ -12,6 +12,7 @@ import (
 
 var currentChannels = make([]string, 0)
 
+// handles the server's response by identifying the first byte of the response
 func handleServerResponse(connection net.Conn) {
 	// Buffer that holds command protocol number
 	commandProtocolBuffer := make([]byte, 1)
@@ -40,7 +41,7 @@ func handleServerResponse(connection net.Conn) {
 		case 24:
 			receiveFile(connection)
 		case 34:
-			//client.handleChannelSubscription()
+			subscribeToChannelResponse(connection)
 		case 44:
 			//client.changeUserName()
 		default:
@@ -51,6 +52,8 @@ func handleServerResponse(connection net.Conn) {
 	}
 }
 
+// Handles the user input command by triming and spliting the input and then
+// defining what is the command that the user meant to use
 func handleUserCommand(userTextInput string, connection net.Conn) {
 	trimmedText := strings.Split(strings.TrimSpace(userTextInput), " ")
 	command := trimmedText[0]
@@ -60,8 +63,11 @@ func handleUserCommand(userTextInput string, connection net.Conn) {
 	case "SEND": // Command 24
 		if len(arguments) == 0 {
 			fmt.Println("Missing command arguments!")
+		} else if len(arguments) == 1 {
+			println("Sending files to all subscribed channels!")
+			sendFile(connection, arguments[0], "")
 		} else {
-			sendFile(connection, arguments[0])
+			sendFile(connection, arguments[0], arguments[1])
 		}
 
 	case "SUB": // Command 34
@@ -89,6 +95,8 @@ func handleUserCommand(userTextInput string, connection net.Conn) {
 	}
 }
 
+// Receives a file sent by the server, including the size of the file, its name
+// and length. Then saves the file in the directory
 func receiveFile(connection net.Conn) {
 	fmt.Println("####Reading####")
 	// The protocol number for receiving a file is 24
@@ -176,11 +184,14 @@ func receiveFile(connection net.Conn) {
 	}
 }
 
-// The file named 'fileName' will be sent to all the clients subscribed with
-// the same channels as the current client
-func sendFile(connection net.Conn, fileName string) {
+// Sents the file given through the channel given
+func sendFile(connection net.Conn, fileName string, channelName string) {
 
-	fmt.Printf("Sending %s to all clients subscribed to the following channels:\n", fileName)
+	channelSendFile := ""
+	if channelName == "" {
+		channelSendFile = "ALL subscribed channels"
+	}
+	fmt.Printf("Sending %s to all clients subscribed to the following channel: %s\n", fileName, channelSendFile)
 	listChannels()
 
 	// Check if filename exceeds 64 bytes
@@ -266,6 +277,39 @@ func sendFile(connection net.Conn, fileName string) {
 		return
 	}
 	fmt.Printf("Sent %d bytes of the file named %s \n", bytesWritten, fileName)
+
+	////////////////
+	// Step 6: Send channel Name length  through 4 bytes (1 int)
+	// Convert string name to bytes and get the length
+	channelNameInBytes := []byte(channelName)
+	channelNameBytesSize := len(channelNameInBytes)
+	//fmt.Printf("Step 2: the size in bytes of the channel names length is %d bytes\n", channelNameBytesSize)
+
+	channelNameBufferLength := make([]byte, 4)
+	binary.LittleEndian.PutUint32(channelNameBufferLength, uint32(channelNameBytesSize))
+	//fmt.Printf("The buffer of the length is %v \n", channelNameBufferLength)
+
+	// Step 2: Send file name size
+	_, err = connection.Write(channelNameBufferLength)
+
+	if err != nil {
+		fmt.Println("We couldn't send the message to the server")
+		fmt.Println(err)
+		return
+	}
+
+	//fmt.Printf("Step 6: sent channel name length %d bytes\n", n)
+
+	//Step 7: Send channel name
+	_, err = connection.Write(channelNameInBytes)
+
+	if err != nil {
+		fmt.Println("We couldn't send the message to the server")
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Printf("Step 7: sent File to channel name %s bytes\n", channelName)
 }
 
 // Subscribe to the channel named channelName, if the channel does not exist,
@@ -317,6 +361,41 @@ func subscribeToChannel(connection net.Conn, channelName string) {
 	fmt.Printf("Channels subscribed to: %v \n", currentChannels)
 }
 
+// Reads the response of the server regarding the status of the subscription to
+// a channel and prints it
+func subscribeToChannelResponse(connection net.Conn) {
+
+	// Read int (4 bytes) to determine the length of the response (string)
+	responseLengthBuffer := make([]byte, 4)
+
+	// Read response length
+	bytesRead, err := io.ReadFull(io.LimitReader(connection, 4), responseLengthBuffer)
+	if err != nil {
+		fmt.Println("Step 1 error:", err.Error())
+		//break
+	}
+	fmt.Println(bytesRead)
+
+	// Convert response length buffer to the length of the response
+	responseLength := int32(binary.LittleEndian.Uint32(responseLengthBuffer))
+
+	// Buffer that holds the response
+	responseBuffer := make([]byte, int64(responseLength))
+
+	// Read response
+	bytesRead, err = io.ReadFull(io.LimitReader(connection, int64(responseLength)), responseBuffer)
+	if err != nil {
+		fmt.Println("Step 2 error:", err.Error())
+		//break
+	}
+
+	response := string(responseBuffer)
+
+	// Convert FileName buffer to string
+	fmt.Printf("%s\n", response)
+
+}
+
 // Changes current client username to 'newUserName'
 func changeUserName(connection net.Conn, newUsername string) {
 	// Step 1: Send command
@@ -355,6 +434,7 @@ func changeUserName(connection net.Conn, newUsername string) {
 	fmt.Printf("Changed username to: %s\n", newUsername)
 }
 
+// Prints the current subscribed channels
 func listChannels() {
 	fmt.Printf("Channels subscribed to: %v \n", currentChannels)
 }

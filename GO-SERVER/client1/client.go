@@ -60,8 +60,11 @@ func handleUserCommand(userTextInput string, connection net.Conn) {
 	case "SEND": // Command 24
 		if len(arguments) == 0 {
 			fmt.Println("Missing command arguments!")
+		} else if len(arguments) == 1 {
+			println("Sending files to all subscribed channels!")
+			sendFile(connection, arguments[0], "")
 		} else {
-			sendFile(connection, arguments[0])
+			sendFile(connection, arguments[0], arguments[1])
 		}
 
 	case "SUB": // Command 34
@@ -178,9 +181,13 @@ func receiveFile(connection net.Conn) {
 
 // The file named 'fileName' will be sent to all the clients subscribed with
 // the same channels as the current client
-func sendFile(connection net.Conn, fileName string) {
+func sendFile(connection net.Conn, fileName string, channelName string) {
 
-	fmt.Printf("Sending %s to all clients subscribed to the following channels:\n", fileName)
+	channelSendFile := ""
+	if channelName == "" {
+		channelSendFile = "ALL subscribed channels"
+	}
+	fmt.Printf("Sending %s to all clients subscribed to the following channel: %s\n", fileName, channelSendFile)
 	listChannels()
 
 	// Check if filename exceeds 64 bytes
@@ -266,6 +273,41 @@ func sendFile(connection net.Conn, fileName string) {
 		return
 	}
 	fmt.Printf("Sent %d bytes of the file named %s \n", bytesWritten, fileName)
+
+	////////////////
+	// Step 6: Send channel Name length  through 4 bytes (1 int)
+	// Convert string name to bytes and get the length
+	channelNameInBytes := []byte(channelName)
+	channelNameBytesSize := len(channelNameInBytes)
+	//fmt.Printf("Step 2: the size in bytes of the channel names length is %d bytes\n", channelNameBytesSize)
+
+	channelNameBufferLength := make([]byte, 4)
+	binary.LittleEndian.PutUint32(channelNameBufferLength, uint32(channelNameBytesSize))
+	//fmt.Printf("The buffer of the length is %v \n", channelNameBufferLength)
+
+	// Step 2: Send file name size
+	_, err = connection.Write(channelNameBufferLength)
+
+	if err != nil {
+		fmt.Println("We couldn't send the message to the server")
+		fmt.Println(err)
+		return
+	}
+
+	//fmt.Printf("Step 6: sent channel name length %d bytes\n", n)
+
+	//Step 7: Send channel name
+	_, err = connection.Write(channelNameInBytes)
+
+	if err != nil {
+		fmt.Println("We couldn't send the message to the server")
+		fmt.Println(err)
+		return
+	}
+
+	fmt.Printf("Step 7: sent File to channel name %s bytes\n", channelName)
+
+	////////////////
 }
 
 // Subscribe to the channel named channelName, if the channel does not exist,
