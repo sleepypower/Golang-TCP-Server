@@ -12,7 +12,7 @@ import (
 )
 
 // Sends a string through the connection, follows the protocol of sending
-// the size and then the string
+// the size (byte integer) and then the string (body)
 func sendString(connection net.Conn, message string) {
 	// Convert string name to bytes and get the length
 	responseString := message
