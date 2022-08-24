@@ -40,18 +40,6 @@ func sendString(connection net.Conn, message string) {
 	}
 }
 
-// func sendBuffer(connection net.Conn, bufferName string){
-
-// }
-
-// func receiveString(connection net.Conn, bufferName string){
-
-// }
-
-// func receiveBuffer(connection net.Conn, bufferName string){
-
-// }
-
 // Client is the struct that handles the connection and attributes related to
 // that connection
 type Client struct {
