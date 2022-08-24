@@ -305,13 +305,15 @@ func removeHelper(s []*Client, i int) []*Client {
 // to that channel. If the channel has not been created yet, it creates it and
 // subcribes the client to it
 func (client *Client) handleChannelSubscription() {
+	ocurredError := false
+
 	// Receive channel name length
 	channelNameLengthBuffer := make([]byte, 4)
 
 	bytesRead, err := io.ReadFull(io.LimitReader(client.connection, 4), channelNameLengthBuffer)
 	if err != nil {
 		fmt.Println("Error receiving the length of the channel name:", err.Error())
-		return
+		ocurredError = true
 	}
 	fmt.Println(bytesRead)
 
@@ -322,15 +324,58 @@ func (client *Client) handleChannelSubscription() {
 	bytesRead, err = io.ReadFull(io.LimitReader(client.connection, int64(channelNameLength)), channelNameBuffer)
 	if err != nil {
 		fmt.Println("Error receiving channel name:", err.Error())
-		return
+		ocurredError = true
 	}
 	channelName := string(channelNameBuffer)
 	println("Channel name is: ", channelName)
 
 	// Subscribe the client to the channel
 	// If the channel does not exist, create it
+
+	responseString := ""
+	if ocurredError {
+		responseString = "Unable to subscribe to channel: " + channelName + "\n"
+		sendString(client.connection, responseString)
+		return
+	}
+
+	// Send response to the client
+
+	// Send command byte
+	_, err = client.connection.Write([]byte{34})
+
+	responseString = "Subscribed to channel: " + channelName + "\n"
+	sendString(client.connection, responseString)
+
 	client.server.addClientToChannel(client, channelName)
 	client.channels = append(client.channels, channelName)
+}
+
+func sendString(connection net.Conn, message string) {
+	// Convert string name to bytes and get the length
+	responseString := message
+	responseInBytes := []byte(responseString)
+	responseInBytesSize := len(responseInBytes)
+
+	responseBufferLength := make([]byte, 4)
+	binary.LittleEndian.PutUint32(responseBufferLength, uint32(responseInBytesSize))
+
+	// Step 2: Send response size
+	_, err := connection.Write(responseBufferLength)
+
+	if err != nil {
+		fmt.Println("We couldn't send the message to the server")
+		fmt.Println(err)
+		return
+	}
+
+	// Step 3: Send response buffer
+	_, err = connection.Write([]byte(responseString))
+	if err != nil {
+		fmt.Println("We couldn't send the message to the server")
+		fmt.Println(err)
+		return
+	}
 }
 
 // Reads the new username and changes the client's username to the new one

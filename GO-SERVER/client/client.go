@@ -41,7 +41,7 @@ func handleServerResponse(connection net.Conn) {
 		case 24:
 			receiveFile(connection)
 		case 34:
-			//client.handleChannelSubscription()
+			subscribeToChannelResponse(connection)
 		case 44:
 			//client.changeUserName()
 		default:
@@ -359,6 +359,41 @@ func subscribeToChannel(connection net.Conn, channelName string) {
 	//fmt.Printf("Step 3: sent channel name %d bytes\n", n)
 	currentChannels = append(currentChannels, channelName)
 	fmt.Printf("Channels subscribed to: %v \n", currentChannels)
+}
+
+// Reads the response of the server regarding the status of the subscription to
+// a channel and prints it
+func subscribeToChannelResponse(connection net.Conn) {
+
+	// Read int (4 bytes) to determine the length of the response (string)
+	responseLengthBuffer := make([]byte, 4)
+
+	// Read response length
+	bytesRead, err := io.ReadFull(io.LimitReader(connection, 4), responseLengthBuffer)
+	if err != nil {
+		fmt.Println("Step 1 error:", err.Error())
+		//break
+	}
+	fmt.Println(bytesRead)
+
+	// Convert response length buffer to the length of the response
+	responseLength := int32(binary.LittleEndian.Uint32(responseLengthBuffer))
+
+	// Buffer that holds the response
+	responseBuffer := make([]byte, int64(responseLength))
+
+	// Read response
+	bytesRead, err = io.ReadFull(io.LimitReader(connection, int64(responseLength)), responseBuffer)
+	if err != nil {
+		fmt.Println("Step 2 error:", err.Error())
+		//break
+	}
+
+	response := string(responseBuffer)
+
+	// Convert FileName buffer to string
+	fmt.Printf("%s\n", response)
+
 }
 
 // Changes current client username to 'newUserName'
