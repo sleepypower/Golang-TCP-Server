@@ -29,10 +29,11 @@ There following commands are currently implemented
 | CHNLS |USERNAME|Lists all the channels that the current client is subscribed to|
 | HELP |HELP|Shows all available commands|
 
-There is still a command yet to be implemented:
+There are still some commands that need to be implemented:
 | Command        | Usage           | What does it do  |
 | ------------- |:-------------:|:-----|
 | MSG |MSG 'messageBody' 'channelName'|SENDS a message to all the clients subscribed to channel 'channelName'|
+| UNSUB      |UNSUB 'channelName'|Un-Subscribes the client from the channel 'channelName |
 
 ## Contributing
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
