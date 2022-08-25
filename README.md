@@ -2,24 +2,35 @@
 
 Implementation of a TCP-SERVER using Golang
 
+## Preview 
+
+![plot](./images/server_noclients.png)
+<br />
+![plot](./images/server.png)
+
 ## Usage
 
 ### Run Server
+
 ```cmd
 cd server
 go run main.go
 ```
+
 Allow access to Windows Defender Firewall<br />
 This will allow the server.go to list to localhost:8080
 
 ### Run Clients
+
 There are 5 Clients, but you can create more!
+
 ```cmd
 cd client'Number'
 go run client.go
 ```
 
 ## Commands
+
 There following commands are currently implemented
 | Command        | Usage           | What does it do  |
 | ------------- |:-------------:|:-----|
@@ -36,9 +47,11 @@ There are still some commands that need to be implemented:
 | UNSUB      |UNSUB 'channelName'|Un-Subscribes the client from the channel 'channelName |
 
 ## Contributing
+
 Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
 
 Please make sure to update tests as appropriate.
 
 ## License
+
 [MIT](https://choosealicense.com/licenses/mit/)
