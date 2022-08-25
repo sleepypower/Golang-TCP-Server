@@ -13,6 +13,7 @@ Implementation of a TCP-SERVER using Golang
 ### Run Server
 
 ```cmd
+cd GO-SERVER
 cd server
 go run main.go
 ```
