@@ -76,13 +76,6 @@ export default {
       bytes_sent: 0,
       channels: 0,
       clients: [
-        // {
-        //   username: "DAVID",
-        //   channels: ["mojanggs", "minecraft", "mojang", "minecraft"],
-        // },
-        // { username: "LD", channels: [] },
-        // { username: "DAVID", channels: ["hajsd", "sd"] },
-        // { username: "LD", channels: [] },
       ],
     };
   },
