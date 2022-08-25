@@ -19,7 +19,7 @@ go run main.go
 ```
 
 Allow access to Windows Defender Firewall<br />
-This will allow the server.go to list to localhost:8080
+This will allow the server.go to list to localhost:8085
 
 ### Run Clients
 
