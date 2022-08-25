@@ -45,7 +45,7 @@ There are still some commands that need to be implemented:
 | Command        | Usage           | What does it do  |
 | ------------- |:-------------:|:-----|
 | MSG |MSG 'messageBody' 'channelName'|SENDS a message to all the clients subscribed to channel 'channelName'|
-| UNSUB      |UNSUB 'channelName'|Un-Subscribes the client from the channel 'channelName |
+| UNSUB      |UNSUB 'channelName'|Un-Subscribes the client from the channel 'channelName' |
 
 ## Contributing
 
